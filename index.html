@@ -1,0 +1,825 @@
+<!doctype html><html lang="fr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#121626"><meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.json"><link rel="apple-touch-icon" href="icon-192.png">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}[hidden]{display:none!important}</style>
+<title>Grimoire de poche</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IM+Fell+English+SC&family=Alegreya+Sans:wght@400;500;700&display=swap">
+<style>
+/* Layout : appli une colonne, onglets fixes en bas, cadran de clocher nocturne. Thème sombre assumé. */
+:root{
+  --night:#121626; --panel:#1b2036; --panel2:#242a45; --line:#343b5c;
+  --ink:#e9e4d6; --dim:#9a9fb8; --brass:#c9a45c; --brass-d:#8e7136;
+  --good:#5d8fd6; --evil:#c9474f; --ok:#5fae7a;
+  --qr-light:#fff; --qr-dark:#000;
+  --f-disp:"IM Fell English SC", Georgia, serif;
+  --f-body:"Alegreya Sans", system-ui, sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{background:var(--night);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.45;
+  background-image:radial-gradient(ellipse at 50% -10%, #2a3156 0%, transparent 60%);background-attachment:fixed}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--night)}
+main{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:18px 110px;max-width:640px;margin:0 auto}
+h1,h2,h3{font-family:var(--f-disp);font-weight:400;margin:0;text-wrap:balance;letter-spacing:.02em}
+h1{font-size:1.9rem;color:var(--brass)}
+h2{font-size:1.4rem;color:var(--brass);margin-bottom:10px}
+h3{font-size:1.1rem}
+p{margin:0}
+.sub{color:var(--dim);font-size:.92rem}
+.stack{display:flex;flex-direction:column;gap:12px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.sec{display:flex;flex-direction:column;gap:14px;margin-top:22px}
+.box{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px}
+.lbl{font-size:.75rem;text-transform:uppercase;letter-spacing:.1em;color:var(--dim)}
+button,select,input{font:inherit;color:inherit}
+.btn{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:10px 14px;cursor:pointer;min-height:44px}
+.btn:focus-visible,select:focus-visible,input:focus-visible,.tab:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
+.btn.pri{background:var(--brass);color:#1a1408;border-color:var(--brass);font-weight:700}
+.btn.danger{border-color:var(--evil);color:#f0b9bc}
+.btn.sm{min-height:34px;padding:6px 10px;font-size:.9rem}
+.btn.wide{width:100%}
+input[type=text],select{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:10px;min-height:44px;width:100%;min-width:0}
+.comp{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;text-align:center}
+.comp div{background:var(--panel2);border-radius:8px;padding:8px 4px}
+.comp b{display:block;font-size:1.4rem;font-variant-numeric:tabular-nums}
+.t-good{color:var(--good)} .t-evil{color:var(--evil)}
+.stepper{display:flex;align-items:center;gap:12px}
+.stepper b{font-size:2rem;font-family:var(--f-disp);min-width:2ch;text-align:center;font-variant-numeric:tabular-nums}
+.names{display:flex;flex-direction:column;gap:6px}
+.names .row{flex-wrap:nowrap}
+.names .seat{width:2ch;color:var(--dim);font-variant-numeric:tabular-nums;text-align:right}
+
+/* joueurs */
+.plist{display:flex;flex-direction:column;gap:8px}
+.pl{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px;border-left:4px solid var(--line)}
+.pl.good{border-left-color:var(--good)} .pl.evil{border-left-color:var(--evil)}
+.pl.dead{opacity:.55}
+.pl .nm{font-weight:700;min-width:0;overflow-wrap:anywhere}
+.pl .rl{font-size:.9rem;color:var(--dim)}
+.tok{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:var(--panel2);border:1px solid var(--line);font-family:var(--f-disp);font-size:.95rem}
+.chips{display:flex;gap:6px;flex-wrap:wrap;grid-column:1/-1}
+.chip{font-size:.8rem;padding:4px 9px;border-radius:999px;border:1px solid var(--line);background:transparent;cursor:pointer;min-height:30px;color:var(--dim)}
+.chip.on{background:var(--brass-d);border-color:var(--brass);color:var(--ink)}
+.chip.red.on{background:#5a2328;border-color:var(--evil)}
+.pill{font-size:.75rem;padding:2px 8px;border-radius:999px;background:var(--panel2);color:var(--dim)}
+.pill.ok{color:var(--ok)}
+details.pd{grid-column:1/-1}
+details.pd summary{cursor:pointer;color:var(--dim);font-size:.85rem}
+details.pd .stack{margin-top:8px}
+
+/* nuit */
+.step{display:grid;grid-template-columns:auto 1fr;gap:12px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px}
+.step.done{opacity:.45}
+.step input{width:24px;height:24px;accent-color:var(--brass);margin-top:2px}
+.step .who{font-size:.85rem;color:var(--brass)}
+.step .hint{font-size:.9rem;color:var(--dim);margin-top:4px}
+.step .calc{margin-top:6px;font-size:.95rem;background:var(--panel2);border-radius:6px;padding:6px 8px}
+
+/* jour */
+.clock{font-family:var(--f-disp);font-size:3.4rem;text-align:center;font-variant-numeric:tabular-nums;color:var(--brass)}
+.clock.low{color:var(--evil)}
+.votes{display:flex;align-items:center;justify-content:center;gap:18px}
+.votes b{font-size:3rem;font-family:var(--f-disp);font-variant-numeric:tabular-nums;min-width:2ch;text-align:center}
+.votes .btn{width:64px;height:64px;font-size:1.6rem;border-radius:50%}
+.bar{height:8px;background:var(--panel2);border-radius:4px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--brass);transition:width .2s}
+.bar.pass i{background:var(--evil)}
+.log{font-size:.9rem;color:var(--dim)}
+.log li{margin:2px 0}
+
+/* onglets */
+nav{position:fixed;left:0;right:0;bottom:0;background:#0d1020ee;border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(5,1fr);
+  padding-bottom:env(safe-area-inset-bottom,0px);padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px);backdrop-filter:blur(8px);z-index:5}
+.tab{background:none;border:0;padding:10px 2px 12px;color:var(--dim);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:.78rem}
+.tab svg{width:22px;height:22px}
+.tab.on{color:var(--brass)}
+
+/* écran de révélation */
+.veil{position:fixed;inset:0;background:var(--night);z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;text-align:center;
+  padding:calc(24px + env(safe-area-inset-top,0px)) max(24px,env(safe-area-inset-right,0px)) calc(24px + env(safe-area-inset-bottom,0px)) max(24px,env(safe-area-inset-left,0px))}
+.veil .big{font-family:var(--f-disp);font-size:2.4rem;color:var(--brass)}
+.card{width:min(340px,100%);border-radius:14px;padding:26px 20px;border:2px solid var(--line);background:var(--panel);display:flex;flex-direction:column;gap:12px}
+.card.good{border-color:var(--good);box-shadow:0 0 40px #5d8fd633}
+.card.evil{border-color:var(--evil);box-shadow:0 0 40px #c9474f33}
+.card .rname{font-family:var(--f-disp);font-size:2.1rem}
+.card .team{font-size:.8rem;letter-spacing:.14em;text-transform:uppercase}
+.ol{margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap:6px}
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+details.role summary{cursor:pointer;display:flex;flex-direction:column;gap:2px;list-style:none}
+details.role summary::-webkit-details-marker{display:none}
+details.role[open]{border-color:var(--brass-d)}
+.tip{background:var(--panel2);border-radius:8px;padding:8px 10px}
+.empty{color:var(--dim);text-align:center;padding:24px 8px}
+.confirm{display:flex;gap:8px;flex-wrap:wrap}
+
+/* distribution par lien */
+.veil{overflow-y:auto}
+.qr{background:var(--qr-light);color:var(--qr-dark);padding:12px;border-radius:10px;width:min(280px,80vw);line-height:0}
+.qr svg{width:100%;height:auto}
+.url{font-size:.8rem;color:var(--dim);width:min(340px,100%)!important}
+.pl .acts{display:flex;gap:6px}
+.warn{border-color:var(--brass-d)}
+
+/* vue joueur */
+.pv{min-height:60vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;text-align:center}
+.pv .card{text-align:left}
+.pv .card .rname,.pv .card .team{text-align:center}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+</head><body>
+<main id="app"></main>
+<nav id="nav"></nav>
+<div class="veil" id="veil" hidden></div>
+
+<script>
+// ---------- Données : script « Trouble Brewing », capacités résumées ----------
+const ROLES = {
+  lavandiere:{n:"Lavandière",t:"town",a:"1re nuit : apprend que l'un de deux joueurs est un Villageois précis."},
+  bibliothecaire:{n:"Bibliothécaire",t:"town",a:"1re nuit : apprend que l'un de deux joueurs est un Étranger précis (ou qu'il n'y en a aucun)."},
+  enqueteur:{n:"Enquêteur",t:"town",a:"1re nuit : apprend que l'un de deux joueurs est un Sbire précis."},
+  chef:{n:"Chef",t:"town",a:"1re nuit : apprend combien de paires de joueurs maléfiques sont assis côte à côte."},
+  empathe:{n:"Empathe",t:"town",a:"Chaque nuit : apprend combien de ses deux voisins vivants sont maléfiques."},
+  voyante:{n:"Voyante",t:"town",a:"Chaque nuit : désigne 2 joueurs, apprend si l'un est le Démon. Un joueur bon passe pour le Démon à ses yeux."},
+  croquemort:{n:"Croque-mort",t:"town",a:"Chaque nuit sauf la 1re : apprend le rôle du joueur exécuté aujourd'hui."},
+  moine:{n:"Moine",t:"town",a:"Chaque nuit sauf la 1re : protège un autre joueur du Démon."},
+  corbeaux:{n:"Gardien des corbeaux",t:"town",a:"S'il meurt la nuit : désigne un joueur et apprend son rôle."},
+  vierge:{n:"Vierge",t:"town",a:"La 1re fois qu'il est nominé : si le nominateur est un Villageois, ce dernier est exécuté sur-le-champ."},
+  pourfendeur:{n:"Pourfendeur",t:"town",a:"Une fois par partie, de jour, désigne publiquement un joueur : si c'est le Démon, il meurt."},
+  soldat:{n:"Soldat",t:"town",a:"Le Démon ne peut pas le tuer."},
+  maire:{n:"Maire",t:"town",a:"S'il reste 3 joueurs vivants et aucune exécution, le Bien gagne. S'il meurt la nuit, un autre peut mourir à sa place."},
+  majordome:{n:"Majordome",t:"out",a:"Chaque nuit : choisit un maître. Demain, il ne peut voter que si son maître vote aussi."},
+  ivrogne:{n:"Ivrogne",t:"out",a:"Croit être un Villageois, mais n'en a pas la capacité. Il l'ignore."},
+  reclus:{n:"Reclus",t:"out",a:"Peut passer pour maléfique, Sbire ou Démon, même mort."},
+  saint:{n:"Saint",t:"out",a:"S'il est exécuté, son équipe perd."},
+  empoisonneur:{n:"Empoisonneur",t:"min",a:"Chaque nuit : empoisonne un joueur jusqu'à la nuit suivante."},
+  espion:{n:"Espion",t:"min",a:"Chaque nuit : consulte le Grimoire. Peut passer pour bon, Villageois ou Étranger."},
+  ecarlate:{n:"Femme écarlate",t:"min",a:"S'il reste 5 vivants ou plus et que le Démon meurt, elle devient le Démon."},
+  baron:{n:"Baron",t:"min",a:"Ajoute 2 Étrangers à la partie (préparation)."},
+  diablotin:{n:"Diablotin",t:"dem",a:"Chaque nuit sauf la 1re : tue un joueur. S'il se tue, un Sbire devient Diablotin."}
+};
+const TEAM = {town:"Villageois",out:"Étranger",min:"Sbire",dem:"Démon"};
+const isEvil = r => r && (ROLES[r].t==="min"||ROLES[r].t==="dem");
+const COMP = {5:[3,0,1,1],6:[3,1,1,1],7:[5,0,1,1],8:[5,1,1,1],9:[5,2,1,1],10:[7,0,2,1],11:[7,1,2,1],12:[7,2,2,1],13:[9,0,3,1],14:[9,1,3,1],15:[9,2,3,1]};
+const byType = t => Object.keys(ROLES).filter(k=>ROLES[k].t===t);
+
+// Ordre de nuit : [id, quand]
+const FIRST = ["_minion","_demon","empoisonneur","espion","lavandiere","bibliothecaire","enqueteur","chef","empathe","voyante","majordome"];
+const OTHER = ["empoisonneur","moine","ecarlate","diablotin","corbeaux","croquemort","empathe","voyante","majordome","espion"];
+const HINT = {
+  _minion:"Réveille les Sbires : montre-leur qui est le Démon et qui sont les autres Sbires.",
+  _demon:"Réveille le Démon : montre-lui ses Sbires et 3 rôles bons hors jeu (bluffs).",
+  empoisonneur:"Il désigne un joueur : marque-le Empoisonné.",
+  espion:"Montre-lui le Grimoire.",
+  lavandiere:"Montre 2 joueurs et un jeton de Villageois.",
+  bibliothecaire:"Montre 2 joueurs et un jeton d'Étranger (ou 0).",
+  enqueteur:"Montre 2 joueurs et un jeton de Sbire.",
+  chef:"Donne-lui un nombre avec les doigts.",
+  empathe:"Donne-lui 0, 1 ou 2.",
+  voyante:"Il désigne 2 joueurs : hoche la tête si l'un est le Démon ou la fausse piste.",
+  majordome:"Il désigne son maître.",
+  moine:"Il désigne un joueur à protéger : marque-le Protégé.",
+  ecarlate:"Seulement si le Démon est mort aujourd'hui : elle devient le Démon.",
+  diablotin:"Il désigne une victime. S'il se désigne lui-même, un Sbire devient Diablotin.",
+  corbeaux:"Seulement s'il est mort cette nuit : il désigne un joueur, montre-lui son rôle.",
+  croquemort:"Seulement si quelqu'un a été exécuté : montre-lui le rôle de l'exécuté."
+};
+
+// ---------- Guide : détails des rôles (d = en jeu, c = conseil conteur) ----------
+const DETAIL = {
+  lavandiere:["La première nuit, on lui montre deux joueurs et un rôle de Villageois : l'un des deux a ce rôle.","Montre le vrai porteur et un leurre au hasard. Si elle est ivre ou empoisonnée, tu peux lui montrer n'importe quoi."],
+  bibliothecaire:["Pareil que la Lavandière, mais pour un Étranger. S'il n'y a aucun Étranger en jeu, on lui montre 0.","L'Ivrogne compte comme Étranger : tu peux le lui montrer en tant qu'Ivrogne."],
+  enqueteur:["Pareil, mais pour un Sbire : il apprend qu'un de deux joueurs est tel Sbire.","Le Reclus peut être montré comme Sbire. L'Espion peut ne pas être montré."],
+  chef:["La première nuit, il apprend combien de paires de joueurs maléfiques sont assis directement côte à côte.","L'appli calcule la valeur brute. Reclus et Espion peuvent la fausser, à toi de trancher."],
+  empathe:["Chaque nuit, il apprend combien de ses deux voisins vivants les plus proches sont maléfiques (0, 1 ou 2).","Les morts sont sautés : les voisins changent au fil de la partie. L'appli en tient compte."],
+  voyante:["Chaque nuit, elle désigne deux joueurs et apprend si l'un d'eux est le Démon. Un joueur bon, la fausse piste, passe pour le Démon à ses yeux toute la partie.","L'appli choisit la fausse piste au tirage (marqueur dans le Grimoire). Tu peux la changer."],
+  croquemort:["Chaque nuit sauf la première, il apprend le rôle du joueur exécuté pendant la journée.","Personne d'exécuté : ne le réveille pas. Si c'est l'Ivrogne qui a été exécuté, montre Ivrogne."],
+  moine:["Chaque nuit sauf la première, il protège un autre joueur : le Démon ne peut pas le tuer cette nuit.","Il ne peut pas se choisir. Empoisonné, sa protection ne marche pas."],
+  corbeaux:["S'il meurt pendant la nuit, il se réveille, désigne un joueur et apprend son rôle.","Ne s'active pas s'il est exécuté de jour."],
+  vierge:["La première fois qu'elle est nominée, si le nominateur est un Villageois, celui-ci est exécuté immédiatement et la journée s'arrête.","Elle perd sa capacité dès la 1re nomination, même si rien ne se passe. Un Ivrogne ou un Espion qui la nomine peut ne rien déclencher."],
+  pourfendeur:["Une fois par partie, de jour, il désigne publiquement un joueur : si c'est le Démon, celui-ci meurt.","Une seule tentative. Ivre ou empoisonné, le tir échoue mais est consommé."],
+  soldat:["Le Démon ne peut pas le tuer la nuit.","Le Diablotin peut le choisir, il ne se passe juste rien."],
+  maire:["S'il ne reste que 3 joueurs vivants et qu'aucune exécution n'a lieu ce jour-là, le Bien gagne. S'il devait mourir la nuit, un autre joueur peut mourir à sa place.","Le report de mort est à ta discrétion : utile pour garder la partie serrée."],
+  majordome:["Chaque nuit, il choisit un maître (pas lui-même). Le lendemain, il ne peut voter que si son maître vote aussi.","C'est au joueur de respecter la règle : rappelle-la si besoin."],
+  ivrogne:["Il croit être un Villageois, mais n'en a pas la capacité. Il ne sait pas qu'il est Ivrogne.","Réveille-le comme son faux rôle. Ses infos peuvent être fausses : c'est là qu'il devient intéressant."],
+  reclus:["Il peut passer pour maléfique, Sbire ou Démon face aux capacités, même mort.","Tu décides au cas par cas comment il apparaît. Il reste dans l'équipe du Bien."],
+  saint:["S'il est exécuté, son équipe (le Bien) perd immédiatement.","Mourir la nuit ne déclenche rien. Le Démon adore le faire passer pour suspect."],
+  empoisonneur:["Chaque nuit, il empoisonne un joueur jusqu'à la nuit suivante : sa capacité ne marche plus et ses infos peuvent être fausses.","Le joueur empoisonné n'est jamais prévenu. Les marqueurs s'effacent à la nuit suivante dans l'appli."],
+  espion:["Chaque nuit, il consulte le Grimoire. Il peut passer pour bon, Villageois ou Étranger.","Montre-lui l'écran Grimoire en entier, puis récupère le téléphone."],
+  ecarlate:["S'il reste 5 joueurs vivants ou plus et que le Démon meurt, elle devient le Démon.","Change son rôle en Diablotin dans le Grimoire et préviens-la en secret la nuit suivante."],
+  baron:["Sa présence ajoute 2 Étrangers à la partie, à la place de 2 Villageois.","L'appli fait l'ajustement au tirage."],
+  diablotin:["Chaque nuit sauf la première, il tue un joueur. S'il se tue lui-même, un Sbire vivant devient le nouveau Diablotin.","Réveille le nouveau Diablotin pour lui montrer son rôle. Fais-le passer avant la Femme écarlate si elle est en jeu."]
+};
+
+const RULES = [
+  ["Le but","Le Bien gagne si le Démon meurt. Le Mal gagne s'il ne reste que 2 joueurs vivants (le Démon compris)."],
+  ["Les équipes","Bien : Villageois (capacités utiles) et Étrangers (capacités gênantes). Mal : les Sbires et un Démon, qui se connaissent dès 7 joueurs."],
+  ["La nuit","Tout le monde ferme les yeux. Le conteur réveille les rôles un par un, dans l'ordre de nuit. Ils agissent en silence, par gestes."],
+  ["Le jour","Le conteur annonce les morts de la nuit. Les joueurs discutent librement, en groupe ou en aparté, puis on passe aux nominations."],
+  ["Nominations","Chaque joueur vivant peut nominer une fois par jour, et chaque joueur ne peut être nominé qu'une fois par jour. Le nominé peut se défendre."],
+  ["Votes","On compte les mains levées dans le sens du cercle. Il faut au moins la moitié des vivants. Le plus haut score du jour est exécuté au coucher du soleil ; en cas d'égalité, personne. Une seule exécution par jour."],
+  ["Les morts","Ils restent dans la partie, peuvent parler et ont un seul vote pour le reste du jeu. Ils perdent leur capacité."],
+  ["Ivre et empoisonné","Un joueur ivre ou empoisonné n'a plus de capacité, sans le savoir. Ses infos peuvent être fausses."],
+  ["Ce qu'on peut dire","Tout, y compris mentir. Seule interdiction : montrer son rôle dans l'appli ou parler pendant la nuit."]
+];
+const SCRIPT = [
+  ["Avant la partie",["Fais asseoir tout le monde en cercle et entre les noms dans cet ordre.","Tire les rôles, puis passe le téléphone à chacun dans l'onglet Partie.","Explique les règles en 2 minutes (onglet Règles), surtout les votes et les morts."]],
+  ["Première nuit",["Dis : « Tout le monde ferme les yeux. »","Suis l'onglet Nuit de haut en bas. Dès 7 joueurs, réveille les Sbires puis le Démon pour qu'ils se reconnaissent.","Coche chaque étape. Quand c'est fini : « Tout le monde ouvre les yeux. »"]],
+  ["Chaque jour",["Annonce qui est mort cette nuit, sans dire comment.","Lance le minuteur de discussion (5 min au début, moins ensuite).","Ouvre les nominations. Pour chaque nomination : le nominateur explique, le nominé se défend, puis on vote.","Au coucher du soleil, exécute le plus haut score s'il atteint le seuil. Touche Exécuter."]],
+  ["Nuits suivantes",["Même chose avec l'ordre des autres nuits. Les marqueurs Empoisonné et Protégé s'effacent tout seuls.","Le Croque-mort ne se réveille que si quelqu'un a été exécuté. Le Gardien des corbeaux seulement s'il vient de mourir."]],
+  ["Fin de partie",["Dès que le Démon meurt (et que la Femme écarlate ne prend pas le relais), le Bien gagne.","S'il ne reste que 2 vivants, le Mal gagne.","Révèle le Grimoire à tout le monde : c'est le meilleur moment de la partie."]],
+  ["Conseils de conteur",["Ton but est une partie serrée, pas de faire gagner un camp.","Ivrogne et Empoisonneur sont tes outils pour brouiller les infos : donne des infos fausses mais crédibles.","Garde un bon rythme : une nuit ne doit pas durer plus de quelques minutes.","Chuchote ou utilise des gestes pour que personne n'entende qui tu réveilles."]]
+];
+
+// ---------- État ----------
+const KEY="botc-grimoire-v1";
+let S = load() || fresh(8);
+S.claims=S.claims||[];
+let tab = "setup";
+let confirmReset=false, pending=null, timer={left:300,run:false,id:null}, vote={nominee:"",n:0};
+// pending : action destructive en attente de confirmation ("draw" | "plus" | "minus")
+
+function fresh(n){return {count:n,players:Array.from({length:n},(_,i)=>({name:"Joueur "+(i+1),role:"",fake:"",alive:true,ghost:true,seen:false,marks:[]})),bluffs:[],night:1,done:{},log:[],claims:[],phase:"night"};}
+function load(){try{const v=localStorage.getItem(KEY);return v?JSON.parse(v):null}catch(e){return null}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}broadcast()}
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+const esc = s => String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+function resize(n){
+  n=Math.max(5,Math.min(15,n));
+  while(S.players.length<n) S.players.push({name:"Joueur "+(S.players.length+1),role:"",fake:"",alive:true,ghost:true,seen:false,marks:[]});
+  S.players.length=n; S.count=n; S.claims=S.claims.slice(0,n);
+}
+// vrai seulement si chaque joueur a un rôle (protège aussi des sauvegardes incohérentes)
+const hasRoles = ()=>S.players.length>0&&S.players.every(p=>p.role&&ROLES[p.role]);
+function clearRoles(){
+  S.players.forEach(p=>{p.role="";p.fake="";p.alive=true;p.ghost=true;p.seen=false;p.marks=[]});
+  S.bluffs=[];S.night=1;S.done={};S.log=[];
+}
+function draw(){
+  let [t,o,m,d]=COMP[S.count];
+  const mins=shuffle(byType("min")).slice(0,m);
+  if(mins.includes("baron")){o+=2;t-=2}
+  const outs=shuffle(byType("out")).slice(0,o);
+  const towns=shuffle(byType("town")).slice(0,t);
+  const all=shuffle([...towns,...outs,...mins,"diablotin"]);
+  const inPlay=new Set(all);
+  const freeTown=shuffle(byType("town").filter(r=>!inPlay.has(r)));
+  const fake = inPlay.has("ivrogne") ? freeTown.shift() : "";
+  S.bluffs = shuffle([...freeTown,...byType("out").filter(r=>!inPlay.has(r)&&r!=="ivrogne")]).slice(0,3);
+  S.players.forEach((p,i)=>{p.role=all[i];p.fake=p.role==="ivrogne"?fake:"";p.alive=true;p.ghost=true;p.seen=false;p.marks=[]});
+  // fausse piste de la Voyante : un joueur bon au hasard
+  if(inPlay.has("voyante")){const g=shuffle(S.players.filter(p=>!isEvil(p.role)));if(g[0])g[0].marks.push("Fausse piste")}
+  S.night=1;S.done={};S.log=[];S.drawnAt=Date.now();S.phase="night";S.pubAlive=S.players.map(()=>true);
+}
+
+// ---------- Rendu ----------
+const ICONS={
+  setup:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1"/></svg>',
+  roles:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h3"/></svg>',
+  grim:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 21V5"/><circle cx="12" cy="10" r="2.5"/></svg>',
+  night:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg>',
+  day:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l3 2M9 2h6"/></svg>'
+};
+ICONS.guide='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 6c-2-1.5-5-2-8-1.5v14c3-.5 6 0 8 1.5 2-1.5 5-2 8-1.5v-14c-3-.5-6 0-8 1.5z"/><path d="M12 6v14"/></svg>';
+const TABS=[["setup","Partie"],["grim","Grimoire"],["night","Nuit"],["day","Jour"],["guide","Guide"]];
+let gtab="regles";
+function vGuide(){
+  const sub=[["regles","Règles"],["conteur","Conteur"],["roles","Rôles"]];
+  let body="";
+  if(gtab==="regles") body=RULES.map(([h,t])=>`<div class="box stack"><h3>${h}</h3><p>${t}</p></div>`).join("");
+  else if(gtab==="conteur") body=SCRIPT.map(([h,l])=>`<div class="box stack"><h3>${h}</h3><ol class="ol">${l.map(x=>`<li>${x}</li>`).join("")}</ol></div>`).join("");
+  else body=["town","out","min","dem"].map(t=>`<h3 class="${t==="min"||t==="dem"?"t-evil":"t-good"}" style="margin-top:8px">${TEAM[t]}${t==="dem"?"":"s"}</h3>`+byType(t).map(r=>`
+    <details class="box role"><summary><b>${ROLES[r].n}</b><span class="sub">${ROLES[r].a}</span></summary>
+      <div class="stack" style="margin-top:10px"><p>${DETAIL[r][0]}</p><p class="tip"><span class="lbl">Conteur</span><br>${DETAIL[r][1]}</p>
+      ${FIRST.includes(r)||OTHER.includes(r)?`<p class="sub">Se réveille : ${[FIRST.includes(r)?"1re nuit":"",OTHER.includes(r)?"autres nuits":""].filter(Boolean).join(" et ")}</p>`:`<p class="sub">Ne se réveille pas la nuit.</p>`}</div>
+    </details>`).join("")).join("");
+  return `<h2>Guide</h2><div class="seg">${sub.map(([k,l])=>`<button class="btn sm ${gtab===k?"pri":""}" data-g="${k}">${l}</button>`).join("")}</div>
+  <div class="sec">${body}</div>`;
+}
+
+function render(){
+  document.getElementById("nav").innerHTML=TABS.map(([k,l])=>`<button class="tab ${tab===k?"on":""}" data-tab="${k}">${ICONS[k]}${l}</button>`).join("");
+  const v={setup:vSetup,grim:vGrim,night:vNight,day:vDay,guide:vGuide}[tab]();
+  document.getElementById("app").innerHTML=v;
+  save();
+}
+const pendBox = msg=>`<div class="box stack" style="border-color:var(--evil)"><p>${msg}</p><div class="confirm"><button class="btn danger" data-act="pend-yes">Oui, continuer</button><button class="btn" data-act="pend-no">Annuler</button></div></div>`;
+const noRoles = ()=>`<div class="box empty">Aucun rôle tiré pour l'instant.<br><br><button class="btn pri" data-act="go-setup">Préparer la partie</button></div>`;
+
+function vSetup(){
+  const [t,o,m,d]=COMP[S.count];
+  const drawn=hasRoles();
+  return `<div class="stack">
+    <h1>Grimoire de poche</h1>
+    <p class="sub">Pour jouer à Blood on the Clocktower en présentiel. Le conteur tient l'appli, les joueurs peuvent suivre leur rôle sur leur téléphone. Script : Trouble Brewing.</p>
+  </div>
+  <div class="sec">
+    <div class="box stack">
+      <span class="lbl">Nombre de joueurs (sans le conteur)</span>
+      <div class="stepper"><button class="btn" data-act="minus" aria-label="Moins">−</button><b>${S.count}</b><button class="btn" data-act="plus" aria-label="Plus">+</button></div>
+      <div class="comp">
+        <div><b class="t-good">${t}</b>Villag.</div><div><b class="t-good">${o}</b>Étrang.</div>
+        <div><b class="t-evil">${m}</b>Sbire${m>1?"s":""}</div><div><b class="t-evil">${d}</b>Démon</div>
+      </div>
+      <p class="sub">Si le Baron sort, 2 Villageois deviennent Étrangers.</p>
+      ${pending==="plus"||pending==="minus"?pendBox("Les rôles sont déjà tirés : changer le nombre de joueurs les efface. Il faudra les retirer et les redistribuer."):""}
+    </div>
+    <div class="box stack">
+      <span class="lbl">Joueurs, dans l'ordre où ils sont assis</span>
+      <div class="names">${S.players.map((p,i)=>`<div class="row"><span class="seat">${i+1}</span><input type="text" id="name-${i}" data-name="${i}" maxlength="30" value="${esc(p.name)}" aria-label="Nom du joueur ${i+1}"></div>`).join("")}</div>
+      <p class="sub">L'ordre compte : il sert au calcul du Chef et de l'Empathe.</p>
+    </div>
+    ${vTable()}
+    <button class="btn ${drawn?"":"pri"} wide" data-act="draw">${drawn?"Retirer les rôles":"Tirer les rôles au hasard"}</button>
+    ${pending==="draw"?pendBox("Retirer redistribue tous les rôles et remet la partie à zéro (nuit, morts, marqueurs, historique)."):""}
+    ${drawn?vRoles():""}
+    <div class="confirm">${confirmReset
+      ?`<button class="btn danger" data-act="reset-yes">Oui, tout effacer</button><button class="btn" data-act="reset-no">Annuler</button>`
+      :`<button class="btn sm" data-act="reset">Nouvelle partie (tout effacer)</button>`}</div>
+  </div>`;
+}
+
+function vRoles(){
+  if(!hasRoles()) return noRoles();
+  const seen=S.players.filter(p=>p.seen).length, byLink=S.dist==="link";
+  const head=`<h2 style="margin-top:8px">Distribution</h2>
+  <div class="seg"><button class="btn sm ${byLink?"":"pri"}" data-dist="phone">Sur ce téléphone</button><button class="btn sm ${byLink?"pri":""}" data-dist="link">Lien ou QR code</button></div>`;
+  if(!byLink) return head+`
+  ${S.host?`<p class="sub">Les joueurs connectés à la table voient déjà leur rôle sur leur téléphone. Pour les autres :</p>`:""}
+  <p class="sub">Tape un nom, passe le téléphone au joueur. Il regarde son rôle, cache l'écran et te le rend. ${seen}/${S.players.length} ont vu leur rôle.</p>
+  <div class="plist">${S.players.map((p,i)=>`
+    <button class="pl btn" style="text-align:left" data-reveal="${i}">
+      <span class="tok">${i+1}</span><span class="nm">${esc(p.name)}</span>
+      <span class="pill ${p.seen?"ok":""}">${p.seen?"Vu ✓":"À voir"}</span>
+    </button>`).join("")}</div>`;
+  const local=location.protocol==="file:"||["localhost","127.0.0.1","[::1]",""].includes(location.hostname);
+  return head+`
+  <p class="sub">Chaque joueur reçoit son propre lien et voit son rôle sur son téléphone, sans rien installer. Fais-lui scanner le QR code, ou envoie le lien en message privé. ${seen}/${S.players.length} envoyés.</p>
+  ${local?`<div class="box warn"><p class="sub">Tu es en local : les liens pointeront vers cet appareil et ne s'ouvriront pas ailleurs. Mets l'appli en ligne (voir README), ou ouvre-la via l'adresse réseau affichée par <code>npx serve</code> si tout le monde est sur le même wifi.</p></div>`:""}
+  <div class="plist">${S.players.map((p,i)=>`
+    <div class="pl">
+      <span class="tok">${i+1}</span>
+      <div style="min-width:0"><div class="nm">${esc(p.name)}</div><span class="pill ${p.seen?"ok":""}">${p.seen?"Envoyé ✓":"À envoyer"}</span></div>
+      <div class="acts"><button class="btn sm" data-qr="${i}">QR</button><button class="btn sm" data-share="${i}">Envoyer</button></div>
+    </div>`).join("")}</div>
+  <p class="sub">Un lien ne contient que le rôle de ce joueur : ne le poste pas dans un groupe. Si un rôle change en cours de partie (Femme écarlate, nouveau Diablotin), renvoie-lui son lien.</p>`;
+}
+
+// ---------- Liens joueur ----------
+// Le rôle voyage dans le fragment (#j=…), jamais envoyé au serveur. Brouillé pour ne pas se lire d'un coup d'œil.
+const OBF="clocktower";
+const xorB = b=>b.map((x,i)=>x^OBF.charCodeAt(i%OBF.length)^(i*29&255));
+function b64u(b){let s="";b.forEach(x=>s+=String.fromCharCode(x));return btoa(s).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"")}
+const unb64u = s=>Uint8Array.from(atob(s.replace(/-/g,"+").replace(/_/g,"/")),c=>c.charCodeAt(0));
+function linkFor(p){
+  if(!S.drawnAt){S.drawnAt=Date.now();save()}
+  // l'Ivrogne reçoit son faux rôle : le lien ne contient jamais « ivrogne »
+  const data=new TextEncoder().encode(JSON.stringify([1,p.fake||p.role,p.name,Math.floor(S.drawnAt/60000)]));
+  return location.origin+location.pathname+"#j="+b64u(xorB(data));
+}
+function readLink(s){
+  try{const a=JSON.parse(new TextDecoder().decode(xorB(unb64u(s))));if(a[0]!==1||!ROLES[a[1]])return null;return {r:a[1],n:String(a[2]),t:+a[3]*60000}}catch(e){return null}
+}
+async function shareLink(i){
+  const p=S.players[i],url=linkFor(p);
+  if(!navigator.share){showQR(i);return}
+  try{await navigator.share({title:"Ton rôle",text:`${p.name}, voici ton rôle pour Blood on the Clocktower. Ouvre ce lien sans le montrer à personne.`,url});p.seen=true;render()}catch(e){}
+}
+function showQR(i){
+  const p=S.players[i],url=linkFor(p),v=document.getElementById("veil");
+  v.hidden=false;
+  v.innerHTML=`<p class="sub">Fais scanner ce code par</p><div class="big">${esc(p.name)}</div>
+    <div class="qr" role="img" aria-label="QR code du lien de ${esc(p.name)}">${qrSVG(url)}</div>
+    <p class="sub">Avec l'appareil photo de son téléphone. Son rôle ne s'affiche que quand il touche « Voir mon rôle ».</p>
+    <input type="text" class="url" id="qr-url" readonly value="${esc(url)}" aria-label="Lien du joueur">
+    <div class="row" style="justify-content:center"><button class="btn" data-v="copy">Copier le lien</button>
+    <button class="btn pri" data-v="sent" data-i="${i}">C'est fait</button><button class="btn" data-v="close">Retour</button></div>`;
+}
+async function copyLink(){
+  const inp=document.getElementById("qr-url");if(!inp)return;
+  try{await navigator.clipboard.writeText(inp.value);inp.value="Lien copié !";setTimeout(()=>{inp.value=inp.defaultValue},1200)}
+  catch(e){inp.focus();inp.select()}
+}
+
+// ---------- QR code (mode octet, correction M, versions 1 à 15) ----------
+const QR_ECC=[0,10,16,26,18,24,16,18,22,22,26,30,22,22,24,24], QR_BLK=[0,1,1,1,2,2,4,4,4,5,5,5,8,9,9,10];
+function gfMul(x,y){let z=0;for(let i=7;i>=0;i--){z=(z<<1)^((z>>>7)*0x11D);z^=((y>>>i)&1)*x}return z}
+function rsRem(data,deg){
+  const div=new Array(deg).fill(0);div[deg-1]=1;let root=1;
+  for(let i=0;i<deg;i++){for(let j=0;j<deg;j++){div[j]=gfMul(div[j],root);if(j+1<deg)div[j]^=div[j+1]}root=gfMul(root,2)}
+  const r=new Array(deg).fill(0);
+  for(const b of data){const f=b^r.shift();r.push(0);div.forEach((c,i)=>r[i]^=gfMul(c,f))}
+  return r;
+}
+function qrMatrix(text){
+  const bytes=[...new TextEncoder().encode(text)];
+  const raw=v=>{let r=(16*v+128)*v+64;if(v>=2){const na=Math.floor(v/7)+2;r-=(25*na-10)*na-55;if(v>=7)r-=36}return r};
+  let ver=1;
+  for(;ver<=15;ver++) if(4+(ver<10?8:16)+8*bytes.length<=(Math.floor(raw(ver)/8)-QR_ECC[ver]*QR_BLK[ver])*8) break;
+  if(ver>15) throw new Error("lien trop long");
+  const size=ver*4+17, cap=Math.floor(raw(ver)/8)-QR_ECC[ver]*QR_BLK[ver];
+  // flux de bits : mode octet, longueur, données, terminateur, bourrage
+  const bits=[];const put=(v,n)=>{for(let i=n-1;i>=0;i--)bits.push((v>>>i)&1)};
+  put(4,4);put(bytes.length,ver<10?8:16);bytes.forEach(b=>put(b,8));
+  put(0,Math.min(4,cap*8-bits.length));put(0,(8-bits.length%8)%8);
+  for(let p=0xEC;bits.length<cap*8;p^=0xEC^0x11)put(p,8);
+  const data=[];for(let i=0;i<bits.length;i+=8)data.push(parseInt(bits.slice(i,i+8).join(""),2));
+  // blocs + correction d'erreurs, entrelacés
+  const nb=QR_BLK[ver],ecl=QR_ECC[ver],rawCw=Math.floor(raw(ver)/8),nShort=nb-rawCw%nb,shortLen=Math.floor(rawCw/nb);
+  const blocks=[];
+  for(let i=0,k=0;i<nb;i++){const dat=data.slice(k,k+=shortLen-ecl+(i<nShort?0:1));const ec=rsRem(dat,ecl);if(i<nShort)dat.push(0);blocks.push(dat.concat(ec))}
+  const cw=[];
+  for(let i=0;i<blocks[0].length;i++)blocks.forEach((b,j)=>{if(i!==shortLen-ecl||j>=nShort)cw.push(b[i])});
+  // motifs fixes
+  const M=[...Array(size)].map(()=>Array(size).fill(0)),F=[...Array(size)].map(()=>Array(size).fill(false));
+  const setF=(x,y,d)=>{M[y][x]=d?1:0;F[y][x]=true};
+  for(let i=0;i<size;i++){setF(6,i,i%2===0);setF(i,6,i%2===0)}
+  for(const [cx,cy] of [[3,3],[size-4,3],[3,size-4]])for(let dy=-4;dy<=4;dy++)for(let dx=-4;dx<=4;dx++){const x=cx+dx,y=cy+dy,dist=Math.max(Math.abs(dx),Math.abs(dy));if(x>=0&&x<size&&y>=0&&y<size)setF(x,y,dist!==2&&dist!==4)}
+  if(ver>1){const na=Math.floor(ver/7)+2,step=Math.ceil((ver*4+4)/(na*2-2))*2,pos=[6];for(let p=size-7;pos.length<na;p-=step)pos.splice(1,0,p);
+    pos.forEach((x,i)=>pos.forEach((y,j)=>{if((i===0&&j===0)||(i===0&&j===na-1)||(i===na-1&&j===0))return;for(let dy=-2;dy<=2;dy++)for(let dx=-2;dx<=2;dx++)setF(x+dx,y+dy,Math.max(Math.abs(dx),Math.abs(dy))!==1)}))}
+  const format=mask=>{const d=mask;let r=d;for(let i=0;i<10;i++)r=(r<<1)^((r>>>9)*0x537);const b=((d<<10)|r)^0x5412,bit=i=>(b>>>i)&1;
+    for(let i=0;i<=5;i++)setF(8,i,bit(i));setF(8,7,bit(6));setF(8,8,bit(7));setF(7,8,bit(8));for(let i=9;i<15;i++)setF(14-i,8,bit(i));
+    for(let i=0;i<8;i++)setF(size-1-i,8,bit(i));for(let i=8;i<15;i++)setF(8,size-15+i,bit(i));setF(8,size-8,1)};
+  format(0);
+  if(ver>=7){let r=ver;for(let i=0;i<12;i++)r=(r<<1)^((r>>>11)*0x1F25);const b=(ver<<12)|r;for(let i=0;i<18;i++){const bit=(b>>>i)&1,a=size-11+i%3,c=Math.floor(i/3);setF(a,c,bit);setF(c,a,bit)}}
+  // placement en zigzag
+  let i=0;
+  for(let right=size-1;right>=1;right-=2){if(right===6)right=5;
+    for(let vert=0;vert<size;vert++)for(let j=0;j<2;j++){const x=right-j,y=((right+1)&2)===0?size-1-vert:vert;
+      if(!F[y][x]&&i<cw.length*8){M[y][x]=(cw[i>>>3]>>>(7-(i&7)))&1;i++}}}
+  // masque : on garde celui qui pénalise le moins
+  const MASKS=[(x,y)=>(x+y)%2===0,(x,y)=>y%2===0,(x,y)=>x%3===0,(x,y)=>(x+y)%3===0,(x,y)=>(Math.floor(x/3)+Math.floor(y/2))%2===0,(x,y)=>x*y%2+x*y%3===0,(x,y)=>(x*y%2+x*y%3)%2===0,(x,y)=>((x+y)%2+x*y%3)%2===0];
+  const apply=m=>{for(let y=0;y<size;y++)for(let x=0;x<size;x++)if(!F[y][x]&&MASKS[m](x,y))M[y][x]^=1};
+  const penalty=()=>{let p=0,dark=0;
+    for(let pass=0;pass<2;pass++)for(let a=0;a<size;a++){let run=0,col=-1,line="";
+      for(let b=0;b<size;b++){const c=pass?M[b][a]:M[a][b];line+=c;if(c===col){run++;if(run===5)p+=3;else if(run>5)p++}else{col=c;run=1}}
+      const s="0000"+line+"0000";for(const pat of ["10111010000","00001011101"])for(let k=s.indexOf(pat);k>=0;k=s.indexOf(pat,k+1))p+=40}
+    for(let y=0;y<size;y++)for(let x=0;x<size;x++){dark+=M[y][x];if(x<size-1&&y<size-1){const c=M[y][x];if(c===M[y][x+1]&&c===M[y+1][x]&&c===M[y+1][x+1])p+=3}}
+    return p+(Math.ceil(Math.abs(dark*20-size*size*10)/(size*size))-1)*10};
+  let best=0,bestP=Infinity;
+  for(let m=0;m<8;m++){apply(m);format(m);const p=penalty();if(p<bestP){bestP=p;best=m}apply(m)}
+  apply(best);format(best);
+  return M;
+}
+function qrSVG(text){
+  const M=qrMatrix(text),n=M.length+8;let d="";
+  M.forEach((row,y)=>row.forEach((c,x)=>{if(c)d+=`M${x+4} ${y+4}h1v1h-1z`}));
+  return `<svg viewBox="0 0 ${n} ${n}" shape-rendering="crispEdges" aria-hidden="true"><path d="${d}" fill="currentColor"/></svg>`;
+}
+
+// ---------- Vue joueur (lien individuel #j=… ou table connectée #t=…) ----------
+let pshow=false;
+const fmtDate=t=>{const d=new Date(t);return d.toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"})+" à "+d.toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"})};
+// rôle caché derrière un geste, pour que les voisins ne le voient pas par-dessus l'épaule
+function roleCard(r){
+  if(!pshow) return `<p>Vérifie que personne ne regarde ton écran.</p><button class="btn pri" data-pv="show">Voir mon rôle</button>`;
+  const R=ROLES[r],ev=isEvil(r);
+  const wakes=[FIRST.includes(r)?"la 1re nuit":"",OTHER.includes(r)?"les autres nuits":""].filter(Boolean).join(" et ");
+  return `<div class="card ${ev?"evil":"good"}"><span class="team ${ev?"t-evil":"t-good"}">${TEAM[R.t]} · ${ev?"Maléfique":"Bon"}</span>
+      <div class="rname">${R.n}</div><p>${DETAIL[r][0]}</p>
+      <p class="sub">${wakes?`Le conteur peut te réveiller ${wakes}.`:"Tu ne te réveilles pas la nuit."}${ev?" Dès 7 joueurs, il te présentera tes alliés pendant la 1re nuit.":""}</p></div>
+    <button class="btn pri" data-pv="hide">Cacher mon rôle</button>`;
+}
+// feuille du script + règles : infos publiques, identiques pour tous
+const pRefs=()=>`<details class="box" style="margin-top:22px"><summary class="lbl" style="cursor:pointer">Les rôles du script</summary>
+    <div class="stack" style="margin-top:12px">${["town","out","min","dem"].map(t=>`<h3 class="${t==="min"||t==="dem"?"t-evil":"t-good"}">${TEAM[t]}${t==="dem"?"":"s"}</h3>${byType(t).map(r=>`<div><b>${ROLES[r].n}</b><p class="sub">${ROLES[r].a}</p></div>`).join("")}`).join("")}</div></details>
+  <details class="box" style="margin-top:12px"><summary class="lbl" style="cursor:pointer">Règles du jeu</summary>
+    <div class="stack" style="margin-top:12px">${RULES.map(([h,t])=>`<div><h3>${h}</h3><p class="sub">${t}</p></div>`).join("")}</div></details>`;
+function vPlayer(J){
+  if(!J) return `<div class="pv"><h1>Grimoire de poche</h1><div class="box"><p>Ce lien est invalide ou incomplet.</p><p class="sub" style="margin-top:6px">Demande au conteur de te le renvoyer.</p></div></div>`;
+  return `<div class="pv">
+    <div class="stack"><span class="lbl">Blood on the Clocktower · Trouble Brewing</span><h1>${esc(J.n)}</h1><p class="sub">Partie tirée le ${fmtDate(J.t)}</p></div>
+    ${roleCard(J.r)}
+    <p class="sub">Tu peux mentir sur ton rôle, mais ne montre jamais cet écran. Si le conteur t'envoie un nouveau lien, c'est le nouveau qui compte.</p>
+  </div>${pRefs()}`;
+}
+
+// ---------- Table connectée ----------
+// Le téléphone du conteur héberge la partie ; les joueurs s'y connectent en direct (WebRTC). Le serveur public PeerJS
+// ne sert qu'à mettre les téléphones en relation. Chaque joueur ne reçoit que son rôle et les infos publiques :
+// jamais les infos de nuit, les alliés ni les bluffs, que le conteur donne lui-même.
+const PEERJS={src:"https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.5/peerjs.min.js",sri:"sha512-XEKeWX+mI3Ov+tg2evDlVQFzVOIp4T8J3cNcCEPaEUGpxJV3eZaN8rHuvnFPvQpGJBHPmrozJDMpm2xcDvtmyQ=="};
+const PEER_PREFIX="gdp-";
+function loadPeer(){return window.Peer?Promise.resolve():new Promise((ok,ko)=>{const s=document.createElement("script");s.src=PEERJS.src;s.integrity=PEERJS.sri;s.crossOrigin="anonymous";s.onload=ok;s.onerror=()=>{s.remove();ko()};document.head.appendChild(s)})}
+const newId=n=>Array.from(crypto.getRandomValues(new Uint8Array(n)),b=>"abcdefghjkmnpqrstuvwxyz23456789"[b%31]).join("");
+const tableLink=()=>location.origin+location.pathname+"#t="+S.room;
+
+// côté conteur
+let H={peer:null,conns:new Set(),st:"off",retry:null};
+async function openTable(){
+  if(!S.room)S.room=newId(6);
+  S.host=true;H.st="opening";save();refresh();
+  try{await loadPeer()}catch(e){H.st="error";refresh();return retryHost()}
+  if(!S.host||H.peer&&!H.peer.destroyed)return;
+  const peer=H.peer=new Peer(PEER_PREFIX+S.room);
+  peer.on("open",()=>{H.st="open";refresh()});
+  peer.on("connection",c=>{
+    c.on("open",()=>{H.conns.add(c)});
+    c.on("data",m=>hostMsg(c,m));
+    c.on("close",()=>{H.conns.delete(c);refresh()});
+    c.on("error",()=>{H.conns.delete(c);refresh()});
+  });
+  peer.on("disconnected",()=>setTimeout(()=>{if(!peer.destroyed&&peer.disconnected)peer.reconnect()},2000));
+  // id encore pris juste après un rechargement, réseau coupé… : on réessaie
+  peer.on("error",e=>{if(e.type==="peer-unavailable")return;H.st="error";refresh();peer.destroy();retryHost()});
+}
+function retryHost(){clearTimeout(H.retry);H.retry=setTimeout(()=>{if(S.host)openTable()},4000)}
+function closeTable(){S.host=false;clearTimeout(H.retry);if(H.peer)H.peer.destroy();H.peer=null;H.conns.clear();H.st="off"}
+function hostMsg(c,m){
+  if(!m||typeof m!=="object")return;
+  if(m.t==="hello"){c.token=String(m.token||"").slice(0,40);H.conns.add(c)}
+  // une place par téléphone, et seulement si elle est libre : seul le conteur peut libérer une place
+  else if(m.t==="claim"){const i=+m.seat;if(c.token&&S.players[i]&&!S.claims[i]&&!S.claims.includes(c.token)){S.claims[i]=c.token;save()}}
+  else if(m.t==="seen"){const i=c.token?S.claims.indexOf(c.token):-1;if(i>=0&&hasRoles()&&!S.players[i].seen){S.players[i].seen=true;save()}}
+  sendState(c);refresh();
+}
+function sendState(c){
+  const drawn=hasRoles(),day=S.phase==="day",i=c.token?S.claims.indexOf(c.token):-1,p=S.players[i];
+  // la nuit, on montre les morts tels qu'annoncés à la tombée de la nuit : rien ne fuit avant l'aube
+  const alive=S.players.map((q,k)=>day||!S.pubAlive?q.alive:S.pubAlive[k]!==false);
+  c.send({t:"state",v:1,names:S.players.map(q=>q.name),taken:S.players.map((_,k)=>!!S.claims[k]),alive,ghost:S.players.map(q=>q.ghost),
+    drawn,drawnAt:S.drawnAt||0,night:S.night,phase:S.phase||"night",seat:i,role:drawn&&p?(p.fake||p.role):""});
+}
+let bcT=null;
+function broadcast(){if(!H.conns.size)return;clearTimeout(bcT);bcT=setTimeout(()=>H.conns.forEach(c=>{try{if(c.open)sendState(c)}catch(e){}}),150)}
+// mise à jour de l'écran du conteur quand un joueur se connecte, sans lui voler le champ en cours de saisie
+function refresh(){
+  if(PLAYER||tab!=="setup")return;
+  const a=document.activeElement;
+  if(a&&a.matches("#app input,#app select")){const el=document.getElementById("table-seats");if(el)el.innerHTML=vSeats()}
+  else render();
+}
+function vSeats(){
+  const on=new Set([...H.conns].filter(c=>c.open&&c.token).map(c=>c.token));
+  return `<div class="names">${S.players.map((p,i)=>{const t=S.claims[i];return `<div class="row" style="justify-content:space-between;flex-wrap:nowrap">
+    <span style="min-width:0;overflow-wrap:anywhere"><span class="seat">${i+1}</span> ${esc(p.name)}</span>
+    <span class="row" style="flex-wrap:nowrap">${t?`<span class="pill ${on.has(t)?"ok":""}">${on.has(t)?"Connecté":"Hors ligne"}</span><button class="btn sm" data-free="${i}" aria-label="Libérer la place de ${esc(p.name)}">Libérer</button>`:`<span class="pill">Libre</span>`}</span></div>`}).join("")}</div>`;
+}
+function vTable(){
+  if(!S.host) return `<div class="box stack"><span class="lbl">Table connectée</span>
+    <p class="sub">Les joueurs scannent un seul QR code et retrouvent sur leur téléphone leur rôle, sa description, les rôles du script et les règles. Les infos de nuit restent données par toi, comme d'habitude.</p>
+    <button class="btn wide" data-act="table-open">Ouvrir la table</button></div>`;
+  const st={opening:"Ouverture…",open:"Ouverte",error:"Connexion impossible, nouvel essai…"}[H.st]||"";
+  return `<div class="box stack"><div class="row" style="justify-content:space-between"><span class="lbl">Table connectée</span><span class="pill ${H.st==="open"?"ok":""}">${st}</span></div>
+    <div class="row"><button class="btn pri" data-act="table-qr">QR d'invitation</button><button class="btn" data-act="table-share">Envoyer le lien</button></div>
+    <p class="sub">Chacun choisit son nom en se connectant : entre d'abord les noms ci-dessus.</p>
+    <div id="table-seats">${vSeats()}</div>
+    <p class="sub">Garde l'appli ouverte pendant la partie : c'est ton téléphone qui fait le lien. Les morts apparaissent chez les joueurs à l'aube, pas avant.</p>
+    <button class="btn sm" data-act="table-close">Fermer la table</button></div>`;
+}
+function showInvite(){
+  const v=document.getElementById("veil"),url=tableLink();
+  v.hidden=false;
+  v.innerHTML=`<div class="big">Rejoindre la table</div>
+    <div class="qr" role="img" aria-label="QR code d'invitation">${qrSVG(url)}</div>
+    <p class="sub">Scanne avec l'appareil photo de ton téléphone, puis choisis ton nom.</p>
+    <input type="text" class="url" id="qr-url" readonly value="${esc(url)}" aria-label="Lien d'invitation">
+    <div class="row" style="justify-content:center"><button class="btn" data-v="copy">Copier le lien</button><button class="btn pri" data-v="close">Fermer</button></div>`;
+}
+async function shareInvite(){
+  if(!navigator.share){showInvite();return}
+  try{await navigator.share({title:"Grimoire de poche",text:"Rejoins la table de Blood on the Clocktower :",url:tableLink()})}catch(e){}
+}
+
+// côté joueur
+const TABLE=location.hash.startsWith("#t=")?location.hash.slice(3).replace(/[^a-z0-9]/g,""):"";
+const TKEY="botc-table-"+TABLE;
+let T={st:"connecting",peer:null,conn:null,timer:null};
+let TM=(()=>{try{return JSON.parse(localStorage.getItem(TKEY))||{}}catch(e){return {}}})();
+function tSave(){try{localStorage.setItem(TKEY,JSON.stringify(TM))}catch(e){}}
+async function joinTable(){
+  if(T.conn&&T.conn.open)return;
+  try{await loadPeer()}catch(e){T.st="offline";bootPlayer();return tRetry()}
+  if(!T.peer||T.peer.destroyed){
+    const peer=T.peer=new Peer();
+    peer.on("open",tConnect);
+    peer.on("disconnected",()=>setTimeout(()=>{if(!peer.destroyed&&peer.disconnected)peer.reconnect()},2000));
+    peer.on("error",e=>{T.st=e.type==="peer-unavailable"?"absent":"offline";bootPlayer();if(e.type!=="peer-unavailable")peer.destroy();tRetry()});
+  } else if(T.peer.open) tConnect();
+}
+function tConnect(){
+  if(T.conn&&T.conn.open)return;
+  const c=T.conn=T.peer.connect(PEER_PREFIX+TABLE,{reliable:true});
+  c.on("open",()=>{T.st="on";c.send({t:"hello",token:TM.token});bootPlayer()});
+  c.on("data",m=>{if(m&&m.t==="state"&&Array.isArray(m.names)){TM.state=m;tSave();bootPlayer()}});
+  c.on("close",()=>{if(T.conn===c){T.st="absent";bootPlayer();tRetry()}});
+  setTimeout(()=>{if(T.conn===c&&!c.open){T.st="absent";bootPlayer();tRetry()}},10000);
+}
+function tRetry(){clearTimeout(T.timer);T.timer=setTimeout(joinTable,3000)}
+function vTablePlayer(){
+  const s=TM.state,on=T.st==="on";
+  const msg={connecting:"Connexion à la table…",absent:"Le conteur est injoignable : son appli doit rester ouverte. Nouvel essai…",offline:"Pas de réseau. Nouvel essai…"}[T.st]||"";
+  const head=`<div class="row" style="justify-content:space-between"><span class="lbl">Blood on the Clocktower · Trouble Brewing</span><span class="pill ${on?"ok":""}">${on?"Connecté":"Hors ligne"}</span></div>
+    ${on?"":`<p class="sub" style="margin-top:6px">${msg}</p>`}`;
+  if(!s) return head+`<div class="pv"><h1>Rejoindre la table</h1><p class="sub">${msg}</p></div>`;
+  const seat=s.seat>=0&&s.seat<s.names.length?s.seat:-1;
+  if(seat<0) return head+`<div class="sec"><h1>Qui es-tu ?</h1><p class="sub">Choisis ton nom. Si tu n'apparais pas, demande au conteur de t'ajouter.</p>
+    <div class="plist">${s.names.map((n,i)=>`<button class="pl btn" style="text-align:left" data-claim="${i}" ${s.taken[i]||!on?"disabled":""}>
+      <span class="tok">${i+1}</span><span class="nm">${esc(n)}</span><span class="pill">${s.taken[i]?"Pris":"Libre"}</span></button>`).join("")}</div></div>${pRefs()}`;
+  const role=s.drawn&&ROLES[s.role]?s.role:"";
+  const nAlive=s.alive.filter(Boolean).length;
+  return head+`<div class="pv">
+    <div class="stack"><h1>${esc(s.names[seat])}</h1><p class="sub">Place ${seat+1}${role?` · partie tirée le ${fmtDate(s.drawnAt)}`:""}</p></div>
+    ${role?roleCard(role):`<p class="sub">Le conteur n'a pas encore tiré les rôles. Ton rôle s'affichera ici.</p>`}
+    <p class="sub">Tu peux mentir sur ton rôle, mais ne montre jamais cet écran. Ce n'est pas toi ? Demande au conteur de libérer ta place.</p>
+  </div>
+  ${role?`<div class="box stack"><span class="lbl">${s.phase==="day"?"Jour":"Nuit"} ${s.night} · ${nAlive} vivants sur ${s.names.length}</span>
+    <ol class="ol">${s.names.map((n,i)=>`<li>${esc(n)}${s.alive[i]?"":` <span class="sub">† ${s.ghost[i]?"vote fantôme dispo":"vote fantôme utilisé"}</span>`}</li>`).join("")}</ol></div>`:""}
+  ${pRefs()}`;
+}
+
+function roleSel(i,p){
+  return `<select id="role-${i}" data-role="${i}" aria-label="Rôle de ${esc(p.name)}">${["town","out","min","dem"].map(t=>`<optgroup label="${TEAM[t]}">${byType(t).map(r=>`<option value="${r}" ${p.role===r?"selected":""}>${ROLES[r].n}</option>`).join("")}</optgroup>`).join("")}</select>`;
+}
+function vGrim(){
+  if(!hasRoles()) return noRoles();
+  const MARKS=["Empoisonné","Protégé","Fausse piste","Capacité utilisée"];
+  return `<h2>Grimoire</h2>
+  <p class="sub">Réservé au conteur. Tape un joueur pour changer son rôle ou ses marqueurs.</p>
+  <div class="box stack" style="margin-top:14px"><span class="lbl">Bluffs du Démon</span><p>${S.bluffs.map(b=>ROLES[b].n).join(" · ")||"—"}</p></div>
+  <div class="sec"><div class="plist">${S.players.map((p,i)=>{const R=ROLES[p.role];return `
+    <div class="pl ${isEvil(p.role)?"evil":"good"} ${p.alive?"":"dead"}">
+      <span class="tok">${i+1}</span>
+      <div style="min-width:0"><div class="nm">${esc(p.name)}${p.alive?"":" †"}</div>
+        <div class="rl">${R.n}${p.fake?` (croit être ${ROLES[p.fake].n})`:""} · ${TEAM[R.t]}</div></div>
+      <button class="btn sm" data-alive="${i}">${p.alive?"Tuer":"Ranimer"}</button>
+      <div class="chips">
+        ${MARKS.map(m=>`<button class="chip ${m==="Empoisonné"?"red":""} ${p.marks.includes(m)?"on":""}" data-mark="${i}" data-m="${m}">${m}</button>`).join("")}
+        ${p.alive?"":`<button class="chip ${p.ghost?"on":""}" data-ghost="${i}">${p.ghost?"Vote fantôme dispo":"Vote fantôme utilisé"}</button>`}
+      </div>
+      <details class="pd"><summary>Capacité et rôle</summary><div class="stack">
+        <p class="sub">${R.a}</p>${roleSel(i,p)}
+      </div></details>
+    </div>`}).join("")}</div></div>`;
+}
+
+// voisins vivants
+function aliveNeighbours(i){
+  const n=S.players.length,res=[];
+  for(const dir of [-1,1]){let j=i;for(let k=0;k<n;k++){j=(j+dir+n)%n;if(j===i)break;if(S.players[j].alive){res.push(j);break}}}
+  return res;
+}
+function calc(id){
+  const P=S.players, evil=P.map(p=>isEvil(p.role));
+  const names=ix=>ix.map(i=>esc(P[i].name)).join(", ");
+  if(id==="_minion"){const d=P.findIndex(p=>ROLES[p.role].t==="dem"),m=P.map((p,i)=>ROLES[p.role].t==="min"?i:-1).filter(i=>i>=0);return `Démon : ${names([d])}. Sbires : ${names(m)}.`}
+  if(id==="_demon"){const m=P.map((p,i)=>ROLES[p.role].t==="min"?i:-1).filter(i=>i>=0);return `Sbires : ${names(m)}. Bluffs : ${S.bluffs.map(b=>ROLES[b].n).join(", ")}.`}
+  if(id==="chef"){let c=0;for(let i=0;i<P.length;i++)if(evil[i]&&evil[(i+1)%P.length])c++;return `Valeur brute : <b>${c}</b>`}
+  if(id==="empathe"){const i=P.findIndex(p=>p.role==="empathe"||p.fake==="empathe");if(i<0)return"";const nb=aliveNeighbours(i);return `Voisins vivants : ${names(nb)} → <b>${nb.filter(j=>evil[j]).length}</b>`}
+  return "";
+}
+function vNight(){
+  if(!hasRoles()) return noRoles();
+  const first=S.night===1, order=first?FIRST:OTHER, P=S.players;
+  const steps=order.map(id=>{
+    if(id[0]==="_"){ if(P.length<7) return null; return {id,who:id==="_minion"?"Sbires":"Démon",label:id==="_minion"?"Infos des Sbires":"Infos du Démon"} }
+    const holders=P.filter(p=>p.role===id||p.fake===id);
+    if(!holders.length) return null;
+    const alive=holders.some(p=>p.alive)||id==="corbeaux";
+    if(!alive) return null;
+    return {id,label:ROLES[id].n,who:holders.map(p=>esc(p.name)+(p.fake===id?" (Ivrogne : fais semblant)":"")+(p.marks.includes("Empoisonné")?" (empoisonné)":"")).join(", ")};
+  }).filter(Boolean);
+  const key="n"+S.night;
+  const done=S.done[key]||[];
+  return `<div class="row" style="justify-content:space-between"><h2 style="margin:0">Nuit ${S.night}</h2>
+    <div class="row"><button class="btn sm" data-act="nprev" ${S.night<=1?"disabled":""}>‹</button><button class="btn sm" data-act="nnext">Nuit suivante ›</button></div></div>
+  <p class="sub" style="margin-top:6px">Tout le monde ferme les yeux. Réveille les joueurs dans cet ordre. Les rôles absents ou morts sont déjà retirés.</p>
+  <div class="sec">${steps.length?steps.map(s=>{const c=calc(s.id);return `
+    <label class="step ${done.includes(s.id)?"done":""}"><input type="checkbox" data-step="${s.id}" ${done.includes(s.id)?"checked":""}>
+      <div><h3>${s.label}</h3><div class="who">${s.who}</div><p class="hint">${HINT[s.id]}</p>
+      ${c?`<div class="calc">${c}${["chef","empathe"].includes(s.id)?`<div class="sub">À ajuster si Ivrogne, empoisonné, Reclus ou Espion.</div>`:""}</div>`:""}</div>
+    </label>`}).join(""):`<div class="box empty">Personne à réveiller cette nuit.</div>`}
+    <button class="btn pri wide" data-act="dawn">L'aube se lève → Jour</button>
+  </div>`;
+}
+
+function fmt(s){return Math.floor(s/60)+":"+String(s%60).padStart(2,"0")}
+function vDay(){
+  if(!hasRoles()) return noRoles();
+  const alive=S.players.filter(p=>p.alive).length, need=Math.ceil(alive/2);
+  const pct=Math.min(100,vote.n/Math.max(1,alive)*100);
+  return `<h2>Jour ${S.night}</h2>
+  <p class="sub">${alive} vivants. Il faut <b>${need}</b> votes pour une exécution (et battre le meilleur score du jour).</p>
+  <div class="sec">
+    <div class="box stack">
+      <span class="lbl">Discussion</span>
+      <div class="clock ${timer.left<=30?"low":""}" id="clock">${fmt(timer.left)}</div>
+      <div class="row" style="justify-content:center">
+        <button class="btn sm" data-time="180">3 min</button><button class="btn sm" data-time="300">5 min</button><button class="btn sm" data-time="480">8 min</button>
+        <button class="btn sm pri" data-act="tgl">${timer.run?"Pause":"Lancer"}</button>
+      </div>
+    </div>
+    <div class="box stack">
+      <span class="lbl">Nomination</span>
+      <select id="nominee" data-act="nominee"><option value="">Qui est nominé ?</option>${S.players.map((p,i)=>p.alive?`<option value="${i}" ${String(vote.nominee)===String(i)?"selected":""}>${esc(p.name)}</option>`:"").join("")}</select>
+      <div class="votes"><button class="btn" data-act="vm" aria-label="Retirer un vote">−</button><b>${vote.n}</b><button class="btn" data-act="vp" aria-label="Ajouter un vote">+</button></div>
+      <div class="bar ${vote.n>=need?"pass":""}"><i style="width:${pct}%"></i></div>
+      <p class="sub">Les morts votent une seule fois (vote fantôme), à décocher dans le Grimoire.</p>
+      <div class="row"><button class="btn" data-act="record" ${vote.nominee===""?"disabled":""}>Enregistrer le vote</button>
+      <button class="btn danger" data-act="exec" ${vote.nominee===""?"disabled":""}>Exécuter</button></div>
+    </div>
+    ${S.log.length?`<div class="box"><span class="lbl">Historique</span><ul class="log">${S.log.slice().reverse().map(l=>`<li>${esc(l)}</li>`).join("")}</ul></div>`:""}
+    <button class="btn pri wide" data-act="dusk">La nuit tombe → Nuit ${S.night+1}</button>
+  </div>`;
+}
+
+// ---------- Révélation ----------
+function reveal(i,stage){
+  const v=document.getElementById("veil"),p=S.players[i];
+  v.hidden=false;
+  if(stage===0){
+    v.innerHTML=`<p class="sub">Passe le téléphone à</p><div class="big">${esc(p.name)}</div>
+    <button class="btn pri" data-v="show" data-i="${i}">Je suis ${esc(p.name)}, voir mon rôle</button>
+    <button class="btn" data-v="close">Retour</button>`;
+  } else if(stage===1){
+    const r=p.fake||p.role,R=ROLES[r],ev=isEvil(r);
+    v.innerHTML=`<div class="card ${ev?"evil":"good"}"><span class="team ${ev?"t-evil":"t-good"}">${TEAM[R.t]} · ${ev?"Maléfique":"Bon"}</span>
+      <div class="rname">${R.n}</div><p>${R.a}</p></div>
+      <button class="btn pri" data-v="hide" data-i="${i}">J'ai retenu, cacher</button>`;
+  } else {
+    v.innerHTML=`<div class="big">Écran caché</div><p class="sub">Rends le téléphone au conteur.</p><button class="btn pri" data-v="close">C'est le conteur</button>`;
+  }
+}
+
+// ---------- Événements ----------
+document.addEventListener("click",e=>{
+  const b=e.target.closest("button,[data-step]");if(!b)return;
+  const d=b.dataset;
+  keepAwake();
+  if(d.pv){pshow=d.pv==="show";if(pshow&&T.conn&&T.conn.open)T.conn.send({t:"seen"});bootPlayer();return}
+  if(d.claim!==undefined){if(T.conn&&T.conn.open)T.conn.send({t:"claim",seat:+d.claim});return}
+  if(d.tab){tab=d.tab;confirmReset=false;pending=null;render();scrollTo(0,0);return}
+  if(d.v){
+    if(d.v==="show")reveal(+d.i,1);
+    else if(d.v==="hide"){S.players[+d.i].seen=true;save();reveal(+d.i,2)}
+    else if(d.v==="copy")copyLink();
+    else{if(d.v==="sent")S.players[+d.i].seen=true;document.getElementById("veil").hidden=true;render()}
+    return;
+  }
+  if(d.reveal!==undefined){reveal(+d.reveal,0);return}
+  if(d.dist){S.dist=d.dist;render();return}
+  if(d.qr!==undefined){showQR(+d.qr);return}
+  if(d.share!==undefined){shareLink(+d.share);return}
+  if(d.free!==undefined){S.claims[+d.free]=null;render();return}
+  if(d.alive!==undefined){const p=S.players[+d.alive];p.alive=!p.alive;if(p.alive)p.ghost=true;render();return}
+  if(d.mark!==undefined){const p=S.players[+d.mark],m=d.m;p.marks=p.marks.includes(m)?p.marks.filter(x=>x!==m):[...p.marks,m];render();return}
+  if(d.ghost!==undefined){const p=S.players[+d.ghost];p.ghost=!p.ghost;render();return}
+  if(d.time){timer.left=+d.time;render();return}
+  if(d.g){gtab=d.g;render();return}
+  switch(d.act){
+    case "minus":case "plus":{const n=S.count+(d.act==="plus"?1:-1);if(n<5||n>15)return;if(hasRoles())pending=d.act;else{clearRoles();resize(n)}break}
+    case "draw":if(hasRoles())pending="draw";else draw();break;
+    case "pend-yes":if(pending==="draw")draw();else if(pending){clearRoles();resize(S.count+(pending==="plus"?1:-1))}pending=null;break;
+    case "pend-no":pending=null;break;
+    case "go-setup":tab="setup";break;
+    case "reset":confirmReset=true;break;
+    case "reset-no":confirmReset=false;break;
+    case "reset-yes":S={...fresh(S.count),room:S.room,host:S.host,claims:S.claims};confirmReset=false;break;
+    case "table-open":openTable();return;
+    case "table-close":closeTable();break;
+    case "table-qr":showInvite();return;
+    case "table-share":shareInvite();return;
+    case "nprev":S.night=Math.max(1,S.night-1);break;
+    case "nnext":S.night++;clearMarks();break;
+    case "dawn":tab="day";S.phase="day";vote={nominee:"",n:0};break;
+    case "dusk":S.pubAlive=S.players.map(p=>p.alive);S.phase="night";S.night++;clearMarks();tab="night";stopT();break;
+    case "tgl":timer.run?stopT():startT();break;
+    case "vp":vote.n++;break;
+    case "vm":vote.n=Math.max(0,vote.n-1);break;
+    case "record":S.log.push(`J${S.night} : ${S.players[vote.nominee].name} — ${vote.n} vote(s)`);vote={nominee:"",n:0};break;
+    case "exec":{const p=S.players[vote.nominee];p.alive=false;S.log.push(`J${S.night} : ${p.name} exécuté (${vote.n} votes)`);vote={nominee:"",n:0};break}
+    default:return;
+  }
+  render();
+});
+document.addEventListener("change",e=>{
+  const t=e.target,d=t.dataset;
+  if(d.step){const k="n"+S.night;const a=S.done[k]||[];S.done[k]=t.checked?[...a,d.step]:a.filter(x=>x!==d.step);render()}
+  else if(d.role!==undefined){const p=S.players[+d.role];p.role=t.value;if(t.value!=="ivrogne")p.fake="";else if(!p.fake)p.fake=byType("town").find(r=>!S.players.some(q=>q.role===r))||"";render()}
+  else if(t.id==="nominee"){vote.nominee=t.value;render()}
+});
+document.addEventListener("input",e=>{const d=e.target.dataset;if(d.name!==undefined){S.players[+d.name].name=e.target.value||("Joueur "+(+d.name+1));save()}});
+function clearMarks(){S.players.forEach(p=>p.marks=p.marks.filter(m=>m!=="Protégé"&&m!=="Empoisonné"))}
+function startT(){if(timer.left<=0)timer.left=300;timer.run=true;timer.id=setInterval(()=>{timer.left--;const c=document.getElementById("clock");if(c){c.textContent=fmt(timer.left);c.classList.toggle("low",timer.left<=30)}if(timer.left<=0){stopT();try{navigator.vibrate&&navigator.vibrate([300,100,300])}catch(e){}render()}},1000)}
+function stopT(){timer.run=false;clearInterval(timer.id)}
+// garder l'écran allumé si possible : le navigateur libère le verrou quand l'appli passe en arrière-plan, on le redemande au retour
+let wake=null;
+async function keepAwake(){try{if(!wake&&navigator.wakeLock&&document.visibilityState==="visible"){wake=await navigator.wakeLock.request("screen");wake.addEventListener("release",()=>{wake=null})}}catch(e){}}
+document.addEventListener("visibilitychange",keepAwake);
+keepAwake();
+// lien joueur : on n'affiche que son rôle, sans toucher à la partie enregistrée sur cet appareil
+const PLAYER=location.hash.startsWith("#j=")||location.hash.startsWith("#t=");
+function bootPlayer(){document.getElementById("nav").hidden=true;document.getElementById("app").innerHTML=TABLE?vTablePlayer():vPlayer(readLink(location.hash.slice(3)))}
+addEventListener("hashchange",()=>location.reload());
+if(TABLE){if(!TM.token){TM.token=newId(16);tSave()}bootPlayer();joinTable();document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")joinTable()})}
+else if(PLAYER)bootPlayer();
+else{render();if(S.host)openTable()}
+if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
+</script>
+</body></html>
