@@ -40,6 +40,7 @@ button,select,input{font:inherit;color:inherit}
 .btn{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:10px 14px;cursor:pointer;min-height:44px}
 .btn:focus-visible,select:focus-visible,input:focus-visible,.tab:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
 .btn.pri{background:var(--brass);color:#1a1408;border-color:var(--brass);font-weight:700}
+.btn:disabled{opacity:.4;cursor:not-allowed}
 .btn.danger{border-color:var(--evil);color:#f0b9bc}
 .btn.sm{min-height:34px;padding:6px 10px;font-size:.9rem}
 .btn.wide{width:100%}
@@ -132,6 +133,15 @@ details.role[open]{border-color:var(--brass-d)}
 .rimg.s{width:44px;height:44px} .rimg.l{width:min(180px,50vw);height:auto;margin:0 auto;border-width:3px}
 .card .rimg.good{box-shadow:0 0 24px #5d8fd655} .card .rimg.evil{box-shadow:0 0 24px #c9474f55}
 .rrow{display:flex;gap:12px;align-items:center;min-width:0}
+
+/* sac de rôles */
+.bagrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px}
+.bagc{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 4px;border-radius:10px;border:1px solid var(--line);background:transparent;
+  cursor:pointer;font-size:.8rem;line-height:1.2;min-height:44px;color:var(--dim);text-align:center}
+.bagc .rimg{opacity:.4;filter:grayscale(.8)}
+.bagc.on{border-color:var(--brass);background:var(--panel2);color:var(--ink)}
+.bagc.on .rimg{opacity:1;filter:none}
+.bagc:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
 
 /* vue joueur */
 .pv{min-height:60vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;text-align:center}
@@ -260,7 +270,7 @@ const RULES = [
   ["Exil","Un Voyageur ne peut pas être exécuté : on l'exile. N'importe qui peut lancer un exil, et tout le monde peut le soutenir, même les morts sans dépenser leur vote fantôme. Il faut le soutien d'au moins la moitié de la ville. Ce n'est ni une nomination ni une exécution, et il peut y en avoir plusieurs par jour."]
 ];
 const SCRIPT = [
-  ["Avant la partie",["Fais asseoir tout le monde en cercle et entre les noms dans cet ordre.","Tire les rôles, puis passe le téléphone à chacun dans l'onglet Partie.","Explique les règles en 2 minutes (onglet Règles), surtout les votes et les morts."]],
+  ["Avant la partie",["Fais asseoir tout le monde en cercle et entre les noms dans cet ordre.","Compose le sac de rôles : garde la proposition au hasard ou ajoute et retire des rôles d'un appui. Puis « Distribuer les rôles », et passe le téléphone à chacun (ou ouvre la table connectée).","Explique les règles en 2 minutes (onglet Règles), surtout les votes et les morts."]],
   ["Première nuit",["Dis : « Tout le monde ferme les yeux. »","Suis l'onglet Nuit de haut en bas. Dès 7 joueurs, réveille les Sbires puis le Démon pour qu'ils se reconnaissent.","Coche chaque étape. Quand c'est fini : « Tout le monde ouvre les yeux. »"]],
   ["Chaque jour",["Annonce qui est mort cette nuit, sans dire comment.","Lance le minuteur de discussion (5 min au début, moins ensuite).","Ouvre les nominations. Pour chaque nomination : le nominateur explique, le nominé se défend, puis on vote.","Au coucher du soleil, exécute le plus haut score s'il atteint le seuil. Touche Exécuter."]],
   ["Nuits suivantes",["Même chose avec l'ordre des autres nuits. Les marqueurs Empoisonné et Protégé s'effacent tout seuls.","Le Croque-mort ne se réveille que si quelqu'un a été exécuté. Le Gardien des corbeaux seulement s'il vient de mourir."]],
@@ -303,13 +313,18 @@ function clearRoles(){
   S.players.forEach(p=>{p.role="";p.fake="";p.alive=true;p.ghost=true;p.seen=false;p.marks=[]});
   S.bluffs=[];S.night=1;S.done={};S.log=[];
 }
-function draw(){
-  let [t,o,m,d]=COMP[S.count];
-  const mins=shuffle(byType("min")).slice(0,m);
-  if(mins.includes("baron")){o+=2;t-=2}
-  const outs=shuffle(byType("out")).slice(0,o);
-  const towns=shuffle(byType("town")).slice(0,t);
-  const all=shuffle([...towns,...outs,...mins,"diablotin"]);
+// composition attendue pour le sac donné : le Baron remplace 2 Villageois par 2 Étrangers
+function expected(bag){let [t,o,m,d]=COMP[S.count];if(bag.includes("baron")){o+=2;t-=2}return {town:t,out:o,min:m,dem:d}}
+// sac de rôles au hasard, en respectant la composition
+function randomBag(){
+  const mins=shuffle(byType("min")).slice(0,COMP[S.count][2]);
+  const e=expected(mins);
+  return [...shuffle(byType("town")).slice(0,e.town),...shuffle(byType("out")).slice(0,e.out),...mins,"diablotin"];
+}
+function draw(){deal(randomBag())}
+// distribue au hasard les rôles du sac (choisi par le conteur ou tiré au hasard)
+function deal(bag){
+  const all=shuffle(bag);
   const inPlay=new Set(all);
   const freeTown=shuffle(byType("town").filter(r=>!inPlay.has(r)));
   const fake = inPlay.has("ivrogne") ? freeTown.shift() : "";
@@ -380,12 +395,30 @@ function vSetup(){
     </div>
     ${vTravForm()}
     ${vTable()}
-    <button class="btn ${drawn?"":"pri"} wide" data-act="draw">${drawn?"Retirer les rôles":"Tirer les rôles au hasard"}</button>
-    ${pending==="draw"?pendBox("Retirer redistribue tous les rôles et remet la partie à zéro (nuit, morts, marqueurs, historique)."):""}
+    ${drawn?`<button class="btn wide" data-act="draw">Changer les rôles</button>`:vBag()}
+    ${pending==="draw"?pendBox("Changer les rôles annule la distribution et remet la partie à zéro (nuit, morts, marqueurs, historique). Tu retrouves le sac de rôles actuel pour le modifier, puis tu redistribues."):""}
     ${drawn?vRoles():""}
     <div class="confirm">${confirmReset
       ?`<button class="btn danger" data-act="reset-yes">Oui, tout effacer</button><button class="btn" data-act="reset-no">Annuler</button>`
       :`<button class="btn sm" data-act="reset">Nouvelle partie (tout effacer)</button>`}</div>
+  </div>`;
+}
+
+// sac de rôles : le conteur choisit les rôles en jeu, l'appli les distribue au hasard
+function vBag(){
+  if(!Array.isArray(S.bag)||S.bag.some(r=>!ROLES[r]||isTrav(r))) S.bag=randomBag();
+  const bag=S.bag,e=expected(bag),full=bag.length===S.count,demon=bag.some(r=>ROLES[r].t==="dem");
+  const n=t=>bag.filter(r=>ROLES[r].t===t).length;
+  const odd=["town","out","min","dem"].filter(t=>n(t)!==e[t]);
+  return `<div class="box stack"><div class="row" style="justify-content:space-between"><span class="lbl">Rôles en jeu</span><span class="pill ${full?"ok":""}">${bag.length} / ${S.count}</span></div>
+    <p class="sub">Touche un rôle pour l'ajouter ou le retirer. Ils seront ensuite distribués au hasard aux joueurs.</p>
+    <div class="row"><button class="btn sm" data-act="bag-rand">Proposer au hasard</button><button class="btn sm" data-act="bag-clear">Tout retirer</button></div>
+    ${["town","out","min","dem"].map(t=>`<h3 class="${teamCls(t)}">${TEAMS[t]} <span class="sub">${n(t)} / ${e[t]}</span></h3>
+      <div class="bagrid">${byType(t).map(r=>`<button class="bagc ${bag.includes(r)?"on":""}" data-bag="${r}" aria-pressed="${bag.includes(r)}">${tokImg(r,"s")}${ROLES[r].n}</button>`).join("")}</div>`).join("")}
+    ${!demon?`<p class="t-evil">Il faut un Démon pour pouvoir distribuer.</p>`
+      :!full?`<p class="sub">Il faut exactement ${S.count} rôles, un par joueur (${bag.length>S.count?`retire-en ${bag.length-S.count}`:`ajoutes-en ${S.count-bag.length}`}).</p>`
+      :odd.length?`<p class="sub">Composition inhabituelle (${odd.map(t=>`${n(t)} ${TEAMS[t]} au lieu de ${e[t]}`).join(", ")}). C'est permis : à toi de voir.</p>`:""}
+    <button class="btn pri wide" data-act="deal" ${full&&demon?"":"disabled"}>Distribuer les rôles</button>
   </div>`;
 }
 
@@ -858,6 +891,7 @@ document.addEventListener("click",e=>{
   if(d.leave!==undefined){const p=S.players[+d.leave];if(p&&p.trav){S.log.push(`${S.phase==="day"?"J":"N"}${S.night} : ${p.name} quitte la partie`);removeSeat(+d.leave);vote={nominee:"",n:0}}render();return}
   if(d.align!==undefined){const p=S.players[+d.align];p.align=p.align==="evil"?"good":"evil";render();return}
   if(d.tvalign){tv.align=d.tvalign;render();return}
+  if(d.bag){const r=d.bag;S.bag=S.bag.includes(r)?S.bag.filter(x=>x!==r):[...S.bag,r];render();return}
   if(d.alive!==undefined){const p=S.players[+d.alive];p.alive=!p.alive;if(p.alive)p.ghost=true;render();return}
   if(d.mark!==undefined){const p=S.players[+d.mark],m=d.m;p.marks=p.marks.includes(m)?p.marks.filter(x=>x!==m):[...p.marks,m];render();return}
   if(d.ghost!==undefined){const p=S.players[+d.ghost];p.ghost=!p.ghost;render();return}
@@ -868,8 +902,13 @@ document.addEventListener("click",e=>{
     case "tv-open":tv={name:"",seat:S.players.length,role:"",align:"good"};break;
     case "tv-cancel":tv=null;break;
     case "tv-add":addTraveller();break;
-    case "draw":if(hasRoles())pending="draw";else draw();break;
-    case "pend-yes":if(pending==="draw")draw();else if(pending){clearRoles();resize(S.count+(pending==="plus"?1:-1))}pending=null;break;
+    case "draw":if(hasRoles())pending="draw";break;
+    case "deal":{const b=S.bag||[];if(b.length===S.count&&b.some(r=>ROLES[r].t==="dem"))deal(b);break}
+    case "bag-rand":S.bag=randomBag();break;
+    case "bag-clear":S.bag=[];break;
+    // retour au sac : les rôles distribués redeviennent le sac (vrais rôles, pas ceux que croit l'Ivrogne), les Voyageurs restent
+    case "pend-yes":if(pending==="draw"){S.bag=base().map(p=>p.role);base().forEach(p=>{p.role="";p.fake="";p.seen=false;p.marks=[]})}
+      else if(pending){clearRoles();resize(S.count+(pending==="plus"?1:-1))}pending=null;break;
     case "pend-no":pending=null;break;
     case "go-setup":tab="setup";break;
     case "reset":confirmReset=true;break;

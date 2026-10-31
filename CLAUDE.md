@@ -8,6 +8,7 @@ Appli compagnon du conteur pour **Blood on the Clocktower** (script Trouble Brew
 - `manifest.json` + `icon-192.png` / `icon-512.png` : installation sur l'écran d'accueil.
 
 ## Architecture de index.html
+- Sac de rôles : `S.bag` (rôles choisis par le conteur, sans Voyageurs) édité par `vBag` ; `randomBag()` propose une composition au hasard, `expected(bag)` donne la composition attendue (Baron compris), `deal(bag)` distribue au hasard. `draw()` = `deal(randomBag())`. « Changer les rôles » remet les rôles distribués dans le sac.
 - Données : `ROLES` (nom, type town/out/min/dem, capacité courte), `DETAIL` (texte long + conseil conteur), `RULES`, `SCRIPT`, `COMP` (compo par nombre de joueurs), `FIRST` / `OTHER` (ordre de nuit), `HINT`.
 - État : objet `S` sauvegardé dans `localStorage` (clé `botc-grimoire-v1`). `timer` et `vote` sont volatils.
 - Rendu : `render()` reconstruit `#app` via les vues `vSetup`, `vGrim`, `vNight`, `vDay`, `vGuide`. Événements délégués sur `document` via `data-*`.
