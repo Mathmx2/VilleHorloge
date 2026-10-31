@@ -125,6 +125,13 @@ details.role[open]{border-color:var(--brass-d)}
 .pl .acts{display:flex;gap:6px}
 .warn{border-color:var(--brass-d)}
 
+/* jetons de rôle (illustrations originales, img/<id>.webp) */
+.rimg{display:block;flex:none;border-radius:50%;object-fit:cover;aspect-ratio:1;background:var(--panel2);border:2px solid var(--line)}
+.rimg.good{border-color:var(--good)} .rimg.evil{border-color:var(--evil)}
+.rimg.s{width:44px;height:44px} .rimg.l{width:min(180px,50vw);height:auto;margin:0 auto;border-width:3px}
+.card .rimg.good{box-shadow:0 0 24px #5d8fd655} .card .rimg.evil{box-shadow:0 0 24px #c9474f55}
+.rrow{display:flex;gap:12px;align-items:center;min-width:0}
+
 /* vue joueur */
 .pv{min-height:60vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;text-align:center}
 .pv .card{text-align:left}
@@ -164,7 +171,9 @@ const ROLES = {
   diablotin:{n:"Diablotin",t:"dem",a:"Chaque nuit sauf la 1re : tue un joueur. S'il se tue, un Sbire devient Diablotin."}
 };
 const TEAM = {town:"Villageois",out:"Étranger",min:"Sbire",dem:"Démon"};
+const TEAMS = {town:"Villageois",out:"Étrangers",min:"Sbires",dem:"Démon"};
 const isEvil = r => r && (ROLES[r].t==="min"||ROLES[r].t==="dem");
+const tokImg = (r,size) => `<img class="rimg ${size} ${isEvil(r)?"evil":"good"}" src="img/${r}.webp" alt="" loading="lazy" decoding="async">`;
 const COMP = {5:[3,0,1,1],6:[3,1,1,1],7:[5,0,1,1],8:[5,1,1,1],9:[5,2,1,1],10:[7,0,2,1],11:[7,1,2,1],12:[7,2,2,1],13:[9,0,3,1],14:[9,1,3,1],15:[9,2,3,1]};
 const byType = t => Object.keys(ROLES).filter(k=>ROLES[k].t===t);
 
@@ -185,7 +194,7 @@ const HINT = {
   majordome:"Il désigne son maître.",
   moine:"Il désigne un joueur à protéger : marque-le Protégé.",
   ecarlate:"Seulement si le Démon est mort aujourd'hui : elle devient le Démon.",
-  diablotin:"Il désigne une victime. S'il se désigne lui-même, un Sbire devient Diablotin.",
+  diablotin:"Il désigne une victime. S'il se désigne lui-même : la Femme écarlate devient Diablotin si elle le peut, sinon tu choisis quel Sbire vivant le devient. Réveille-le pour le lui montrer.",
   corbeaux:"Seulement s'il est mort cette nuit : il désigne un joueur, montre-lui son rôle.",
   croquemort:"Seulement si quelqu'un a été exécuté : montre-lui le rôle de l'exécuté."
 };
@@ -213,7 +222,7 @@ const DETAIL = {
   espion:["Chaque nuit, il consulte le Grimoire. Il peut passer pour bon, Villageois ou Étranger.","Montre-lui l'écran Grimoire en entier, puis récupère le téléphone."],
   ecarlate:["S'il reste 5 joueurs vivants ou plus et que le Démon meurt, elle devient le Démon.","Change son rôle en Diablotin dans le Grimoire et préviens-la en secret la nuit suivante."],
   baron:["Sa présence ajoute 2 Étrangers à la partie, à la place de 2 Villageois.","L'appli fait l'ajustement au tirage."],
-  diablotin:["Chaque nuit sauf la première, il tue un joueur. S'il se tue lui-même, un Sbire vivant devient le nouveau Diablotin.","Réveille le nouveau Diablotin pour lui montrer son rôle. Fais-le passer avant la Femme écarlate si elle est en jeu."]
+  diablotin:["Chaque nuit sauf la première, il tue un joueur. S'il se tue lui-même, un Sbire vivant devient le nouveau Diablotin.","Ce n'est pas un tirage au sort. Si la Femme écarlate est en vie et qu'il restait 5 vivants ou plus, c'est forcément elle. Sinon, c'est toi qui choisis quel Sbire vivant devient Diablotin : prends celui qui rendra la partie la plus serrée. Change son rôle dans le Grimoire, puis réveille-le cette nuit pour lui montrer le jeton Diablotin."]
 };
 
 const RULES = [
@@ -294,8 +303,8 @@ function vGuide(){
   let body="";
   if(gtab==="regles") body=RULES.map(([h,t])=>`<div class="box stack"><h3>${h}</h3><p>${t}</p></div>`).join("");
   else if(gtab==="conteur") body=SCRIPT.map(([h,l])=>`<div class="box stack"><h3>${h}</h3><ol class="ol">${l.map(x=>`<li>${x}</li>`).join("")}</ol></div>`).join("");
-  else body=["town","out","min","dem"].map(t=>`<h3 class="${t==="min"||t==="dem"?"t-evil":"t-good"}" style="margin-top:8px">${TEAM[t]}${t==="dem"?"":"s"}</h3>`+byType(t).map(r=>`
-    <details class="box role"><summary><b>${ROLES[r].n}</b><span class="sub">${ROLES[r].a}</span></summary>
+  else body=["town","out","min","dem"].map(t=>`<h3 class="${t==="min"||t==="dem"?"t-evil":"t-good"}" style="margin-top:8px">${TEAMS[t]}</h3>`+byType(t).map(r=>`
+    <details class="box role"><summary><div class="rrow">${tokImg(r,"s")}<div><b>${ROLES[r].n}</b><br><span class="sub">${ROLES[r].a}</span></div></div></summary>
       <div class="stack" style="margin-top:10px"><p>${DETAIL[r][0]}</p><p class="tip"><span class="lbl">Conteur</span><br>${DETAIL[r][1]}</p>
       ${FIRST.includes(r)||OTHER.includes(r)?`<p class="sub">Se réveille : ${[FIRST.includes(r)?"1re nuit":"",OTHER.includes(r)?"autres nuits":""].filter(Boolean).join(" et ")}</p>`:`<p class="sub">Ne se réveille pas la nuit.</p>`}</div>
     </details>`).join("")).join("");
@@ -482,13 +491,13 @@ function roleCard(r){
   const R=ROLES[r],ev=isEvil(r);
   const wakes=[FIRST.includes(r)?"la 1re nuit":"",OTHER.includes(r)?"les autres nuits":""].filter(Boolean).join(" et ");
   return `<div class="card ${ev?"evil":"good"}"><span class="team ${ev?"t-evil":"t-good"}">${TEAM[R.t]} · ${ev?"Maléfique":"Bon"}</span>
-      <div class="rname">${R.n}</div><p>${DETAIL[r][0]}</p>
+      ${tokImg(r,"l")}<div class="rname">${R.n}</div><p>${DETAIL[r][0]}</p>
       <p class="sub">${wakes?`Le conteur peut te réveiller ${wakes}.`:"Tu ne te réveilles pas la nuit."}${ev?" Dès 7 joueurs, il te présentera tes alliés pendant la 1re nuit.":""}</p></div>
     <button class="btn pri" data-pv="hide">Cacher mon rôle</button>`;
 }
 // feuille du script + règles : infos publiques, identiques pour tous
 const pRefs=()=>`<details class="box" style="margin-top:22px"><summary class="lbl" style="cursor:pointer">Les rôles du script</summary>
-    <div class="stack" style="margin-top:12px">${["town","out","min","dem"].map(t=>`<h3 class="${t==="min"||t==="dem"?"t-evil":"t-good"}">${TEAM[t]}${t==="dem"?"":"s"}</h3>${byType(t).map(r=>`<div><b>${ROLES[r].n}</b><p class="sub">${ROLES[r].a}</p></div>`).join("")}`).join("")}</div></details>
+    <div class="stack" style="margin-top:12px">${["town","out","min","dem"].map(t=>`<h3 class="${t==="min"||t==="dem"?"t-evil":"t-good"}">${TEAMS[t]}</h3>${byType(t).map(r=>`<div class="rrow">${tokImg(r,"s")}<div><b>${ROLES[r].n}</b><p class="sub">${ROLES[r].a}</p></div></div>`).join("")}`).join("")}</div></details>
   <details class="box" style="margin-top:12px"><summary class="lbl" style="cursor:pointer">Règles du jeu</summary>
     <div class="stack" style="margin-top:12px">${RULES.map(([h,t])=>`<div><h3>${h}</h3><p class="sub">${t}</p></div>`).join("")}</div></details>`;
 function vPlayer(J){
@@ -645,8 +654,8 @@ function vGrim(){
   <div class="box stack" style="margin-top:14px"><span class="lbl">Bluffs du Démon</span><p>${S.bluffs.map(b=>ROLES[b].n).join(" · ")||"—"}</p></div>
   <div class="sec"><div class="plist">${S.players.map((p,i)=>{const R=ROLES[p.role];return `
     <div class="pl ${isEvil(p.role)?"evil":"good"} ${p.alive?"":"dead"}">
-      <span class="tok">${i+1}</span>
-      <div style="min-width:0"><div class="nm">${esc(p.name)}${p.alive?"":" †"}</div>
+      ${tokImg(p.role,"s")}
+      <div style="min-width:0"><div class="nm">${i+1}. ${esc(p.name)}${p.alive?"":" †"}</div>
         <div class="rl">${R.n}${p.fake?` (croit être ${ROLES[p.fake].n})`:""} · ${TEAM[R.t]}</div></div>
       <button class="btn sm" data-alive="${i}">${p.alive?"Tuer":"Ranimer"}</button>
       <div class="chips">
@@ -692,7 +701,7 @@ function vNight(){
   <p class="sub" style="margin-top:6px">Tout le monde ferme les yeux. Réveille les joueurs dans cet ordre. Les rôles absents ou morts sont déjà retirés.</p>
   <div class="sec">${steps.length?steps.map(s=>{const c=calc(s.id);return `
     <label class="step ${done.includes(s.id)?"done":""}"><input type="checkbox" data-step="${s.id}" ${done.includes(s.id)?"checked":""}>
-      <div><h3>${s.label}</h3><div class="who">${s.who}</div><p class="hint">${HINT[s.id]}</p>
+      <div><div class="rrow">${ROLES[s.id]?tokImg(s.id,"s"):""}<div><h3>${s.label}</h3><div class="who">${s.who}</div></div></div><p class="hint">${HINT[s.id]}</p>
       ${c?`<div class="calc">${c}${["chef","empathe"].includes(s.id)?`<div class="sub">À ajuster si Ivrogne, empoisonné, Reclus ou Espion.</div>`:""}</div>`:""}</div>
     </label>`}).join(""):`<div class="box empty">Personne à réveiller cette nuit.</div>`}
     <button class="btn pri wide" data-act="dawn">L'aube se lève → Jour</button>
@@ -740,7 +749,7 @@ function reveal(i,stage){
   } else if(stage===1){
     const r=p.fake||p.role,R=ROLES[r],ev=isEvil(r);
     v.innerHTML=`<div class="card ${ev?"evil":"good"}"><span class="team ${ev?"t-evil":"t-good"}">${TEAM[R.t]} · ${ev?"Maléfique":"Bon"}</span>
-      <div class="rname">${R.n}</div><p>${R.a}</p></div>
+      ${tokImg(r,"l")}<div class="rname">${R.n}</div><p>${R.a}</p></div>
       <button class="btn pri" data-v="hide" data-i="${i}">J'ai retenu, cacher</button>`;
   } else {
     v.innerHTML=`<div class="big">Écran caché</div><p class="sub">Rends le téléphone au conteur.</p><button class="btn pri" data-v="close">C'est le conteur</button>`;

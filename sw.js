@@ -1,5 +1,6 @@
-const C="grimoire-v6";
-const F=["./","index.html","manifest.json","icon-192.png","icon-512.png"];
+const C="grimoire-v7";
+const F=["./","index.html","manifest.json","icon-192.png","icon-512.png",
+  "img/baron.webp","img/bibliothecaire.webp","img/chef.webp","img/corbeaux.webp","img/croquemort.webp","img/diablotin.webp","img/ecarlate.webp","img/empathe.webp","img/empoisonneur.webp","img/enqueteur.webp","img/espion.webp","img/ivrogne.webp","img/lavandiere.webp","img/maire.webp","img/majordome.webp","img/moine.webp","img/pourfendeur.webp","img/reclus.webp","img/saint.webp","img/soldat.webp","img/vierge.webp","img/voyante.webp"];
 // seuls l'appli, les polices et PeerJS (cdnjs) passent par le cache ; la mise en relation de la table connectée va toujours au réseau
 const CACHED=u=>u.origin===location.origin||/^(fonts\.googleapis\.com|fonts\.gstatic\.com|cdnjs\.cloudflare\.com)$/.test(u.hostname);
 self.addEventListener("install",e=>{e.waitUntil(caches.open(C).then(c=>c.addAll(F)));self.skipWaiting()});

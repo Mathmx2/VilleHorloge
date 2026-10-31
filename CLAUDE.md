@@ -16,6 +16,7 @@ Appli compagnon du conteur pour **Blood on the Clocktower** (script Trouble Brew
 - Vue joueur : si l'URL commence par `#j=`, `bootPlayer()` affiche `vPlayer` sans appeler `render()` ni toucher à `S`/localStorage.
 - Table connectée (`#t=<salle>`) : le téléphone du conteur héberge, les joueurs s'y connectent en WebRTC via PeerJS (chargé à la demande depuis cdnjs avec SRI ; le serveur public PeerJS ne sert qu'à la mise en relation, id `gdp-<salle>`). Conteur : `openTable`, `hostMsg`, `sendState` (diffusé par `save()` → `broadcast()`), `S.room` / `S.host` / `S.claims` (jeton du téléphone par place). Joueur : `joinTable`, `vTablePlayer`, mémoire `localStorage` `botc-table-<salle>`.
 - Règle de conception : l'appli ne transmet aux joueurs QUE leur rôle (faux rôle pour l'Ivrogne) et l'info publique (noms, morts, vote fantôme, jour/nuit). Jamais d'info de nuit, d'alliés ni de bluffs : le conteur les donne en personne. Les morts de la nuit n'apparaissent qu'à l'aube (`S.pubAlive` figé au crépuscule, `S.phase`).
+- Jetons de rôle : `img/<id>.webp` (320 px), illustrations originales générées avec ComfyUI (Flux), affichées en rond via `tokImg(r, "s"|"l")`, liseré bleu (Bien) ou rouge (Mal). Toutes précachées dans `sw.js`. Ne pas utiliser les illustrations officielles du jeu (droits de The Pandemonium Institute, dépôt et site publics).
 - QR code : encodeur maison `qrMatrix` / `qrSVG` (mode octet, correction M, versions 1 à 15), vérifié avec le décodeur jsQR.
 
 ## Conventions
