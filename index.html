@@ -14,7 +14,7 @@
   --night:#121626; --panel:#1b2036; --panel2:#242a45; --line:#343b5c;
   --ink:#e9e4d6; --dim:#9a9fb8; --brass:#c9a45c; --brass-d:#8e7136;
   --good:#5d8fd6; --evil:#c9474f; --ok:#5fae7a;
-  --qr-light:#fff; --qr-dark:#000; --trav:#a58bd8;
+  --qr-light:#fff; --qr-dark:#000; --trav:#a58bd8; --on-accent:#1a1408; --on-evil:#fff;
   --f-disp:"IM Fell English SC", Georgia, serif;
   --f-body:"Alegreya Sans", system-ui, sans-serif;
   color-scheme:dark;
@@ -133,6 +133,25 @@ details.role[open]{border-color:var(--brass-d)}
 .rimg.s{width:44px;height:44px} .rimg.l{width:min(180px,50vw);height:auto;margin:0 auto;border-width:3px}
 .card .rimg.good{box-shadow:0 0 24px #5d8fd655} .card .rimg.evil{box-shadow:0 0 24px #c9474f55}
 .rrow{display:flex;gap:12px;align-items:center;min-width:0}
+
+/* Grimoire en cercle */
+.ring{position:relative;width:calc(100% + 24px);max-width:520px;aspect-ratio:1;margin:18px -12px 4px}
+@media (min-width:560px){.ring{margin:18px auto 4px}}
+.ring::before{content:"";position:absolute;inset:13%;border:1px dashed var(--line);border-radius:50%}
+.ring-c{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;text-align:center}
+.ring-c b{font-family:var(--f-disp);font-size:2rem;font-weight:400;color:var(--brass);font-variant-numeric:tabular-nums;line-height:1.1}
+.seat-t{position:absolute;transform:translate(-50%,-50%);width:min(calc(var(--tk) + 26px),var(--lw));min-width:44px;display:flex;flex-direction:column;align-items:center;gap:3px;
+  background:none;border:0;padding:0;cursor:pointer;color:var(--ink);font:inherit}
+.seat-t .rimg{width:var(--tk);height:var(--tk)}
+.seat-t.sel .rimg{outline:3px solid var(--brass);outline-offset:2px}
+.seat-t.dead .rimg{filter:grayscale(1);opacity:.45}
+.seat-t.dead .seat-n{color:var(--dim);text-decoration:line-through}
+.seat-t:focus-visible{outline:2px solid var(--brass);outline-offset:4px;border-radius:8px}
+.seat-n{font-size:.72rem;line-height:1.15;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.seat-m{position:absolute;top:-6px;right:0;display:flex;gap:2px}
+.seat-m i{font-style:normal;font-size:.62rem;font-weight:700;min-width:17px;height:17px;padding:0 3px;border-radius:9px;background:var(--brass);color:var(--on-accent);display:grid;place-items:center}
+.seat-m i.red{background:var(--evil);color:var(--on-evil)}
+.seat-d{position:absolute;top:-4px;left:4px;font-size:1.1rem;line-height:1;color:var(--evil)}
 
 /* sac de rôles */
 .bagrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px}
@@ -281,7 +300,7 @@ const SCRIPT = [
 
 // ---------- État ----------
 const KEY="botc-grimoire-v1";
-const APP_V="11"; // à garder égal au numéro de cache de sw.js (grimoire-vN)
+const APP_V="12"; // à garder égal au numéro de cache de sw.js (grimoire-vN)
 let S = load() || fresh(8);
 S.claims=S.claims||[];
 let tab = "setup";
@@ -297,8 +316,8 @@ function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor
 const esc = s => String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 
 // les places sont des index : claims et pubAlive suivent chaque insertion ou retrait
-function insertSeat(i,p){S.players.splice(i,0,p);S.claims.splice(i,0,null);if(S.pubAlive)S.pubAlive.splice(i,0,true)}
-function removeSeat(i){S.players.splice(i,1);S.claims.splice(i,1);if(S.pubAlive)S.pubAlive.splice(i,1)}
+function insertSeat(i,p){gsel=null;S.players.splice(i,0,p);S.claims.splice(i,0,null);if(S.pubAlive)S.pubAlive.splice(i,0,true)}
+function removeSeat(i){gsel=null;S.players.splice(i,1);S.claims.splice(i,1);if(S.pubAlive)S.pubAlive.splice(i,1)}
 const base = ()=>S.players.filter(p=>!p.trav);
 // S.count = joueurs hors Voyageurs (la composition ne compte pas les Voyageurs)
 function resize(n){
@@ -757,10 +776,34 @@ function vGrim(){
   if(!hasRoles()) return noRoles();
   const MARKS=["Empoisonné","Protégé","Fausse piste","Capacité utilisée",
     ...S.players.some(p=>p.role==="bureaucrate")?["Vote ×3"]:[],...S.players.some(p=>p.role==="voleur")?["Vote négatif"]:[]];
-  return `<h2>Grimoire</h2>
-  <p class="sub">Réservé au conteur. Tape un joueur pour changer son rôle ou ses marqueurs.</p>
+  const list=S.gview==="liste";
+  if(gsel!==null&&!S.players[gsel])gsel=null;
+  return `<div class="row" style="justify-content:space-between"><h2 style="margin:0">Grimoire</h2>
+    <div class="seg"><button class="btn sm ${list?"":"pri"}" data-gview="cercle">Cercle</button><button class="btn sm ${list?"pri":""}" data-gview="liste">Liste</button></div></div>
+  <p class="sub" style="margin-top:6px">Réservé au conteur. Touche un joueur pour changer son rôle ou ses marqueurs.</p>
   <div class="box stack" style="margin-top:14px"><span class="lbl">Bluffs du Démon</span><p>${S.bluffs.map(b=>ROLES[b].n).join(" · ")||"—"}</p></div>
-  <div class="sec"><div class="plist">${S.players.map((p,i)=>{const R=ROLES[p.role];return `
+  ${list?`<div class="sec"><div class="plist">${S.players.map((p,i)=>grimRow(p,i,MARKS)).join("")}</div></div>`
+    :`${vRing()}<div class="sec">${gsel!==null?grimRow(S.players[gsel],gsel,MARKS):`<p class="sub" style="text-align:center">Touche un jeton pour ouvrir la fiche du joueur.</p>`}</div>`}`;
+}
+// Grimoire en cercle : places dans l'ordre, la 1 en haut, sens des aiguilles d'une montre
+let gsel=null;
+const MARK_ABBR={"Empoisonné":"E","Protégé":"P","Fausse piste":"F","Capacité utilisée":"U","Vote ×3":"×3","Vote négatif":"−"};
+function vRing(){
+  const P=S.players,n=P.length,tk=n<=8?60:n<=12?50:n<=16?40:36,r=n<=8?37:n<=12?39:41;
+  // largeur d'un nom = écart entre deux places sur le cercle (en % du cercle), pour qu'ils ne se chevauchent pas
+  const lw=(2*Math.PI*r/n).toFixed(1);
+  return `<div class="ring" style="--tk:${tk}px;--lw:${lw}%">
+    <div class="ring-c"><span class="lbl">${S.phase==="day"?"Jour":"Nuit"} ${S.night}</span><b>${P.filter(p=>p.alive).length}/${n}</b><span class="sub">vivants</span></div>
+    ${P.map((p,i)=>{const a=(i/n*2-.5)*Math.PI;return `<button class="seat-t ${p.alive?"":"dead"} ${gsel===i?"sel":""}" data-gsel="${i}" style="left:${(50+r*Math.cos(a)).toFixed(2)}%;top:${(50+r*Math.sin(a)).toFixed(2)}%"
+      aria-label="${i+1}. ${esc(p.name)}, ${ROLES[p.role].n}${p.alive?"":", mort"}${p.marks.length?", "+p.marks.join(", "):""}" aria-pressed="${gsel===i}">
+      ${tokImg(p.role,"",pEvil(p))}<span class="seat-n">${i+1}. ${esc(p.name)}</span>
+      ${p.marks.length?`<span class="seat-m">${p.marks.map(m=>`<i class="${m==="Empoisonné"?"red":""}">${MARK_ABBR[m]||"•"}</i>`).join("")}</span>`:""}
+      ${p.alive?"":`<span class="seat-d" aria-hidden="true">†</span>`}</button>`}).join("")}
+  </div>
+  <p class="sub" style="text-align:center">E empoisonné · P protégé · F fausse piste · U capacité utilisée</p>`;
+}
+function grimRow(p,i,MARKS){
+  const R=ROLES[p.role];return `
     <div class="pl ${pEvil(p)?"evil":"good"} ${p.alive?"":"dead"}">
       ${tokImg(p.role,"s")}
       <div style="min-width:0"><div class="nm">${i+1}. ${esc(p.name)}${p.alive?"":" †"}</div>
@@ -774,7 +817,7 @@ function vGrim(){
       <details class="pd"><summary>Capacité et rôle</summary><div class="stack">
         <p class="sub">${R.a}</p>${roleSel(i,p)}
       </div></details>
-    </div>`}).join("")}</div></div>`;
+    </div>`;
 }
 
 // voisins vivants
@@ -895,6 +938,8 @@ document.addEventListener("click",e=>{
   if(d.leave!==undefined){const p=S.players[+d.leave];if(p&&p.trav){S.log.push(`${S.phase==="day"?"J":"N"}${S.night} : ${p.name} quitte la partie`);removeSeat(+d.leave);vote={nominee:"",n:0}}render();return}
   if(d.align!==undefined){const p=S.players[+d.align];p.align=p.align==="evil"?"good":"evil";render();return}
   if(d.tvalign){tv.align=d.tvalign;render();return}
+  if(d.gsel!==undefined){const i=+d.gsel;gsel=gsel===i?null:i;render();return}
+  if(d.gview){S.gview=d.gview;render();return}
   if(d.bag){const r=d.bag;S.bag=S.bag.includes(r)?S.bag.filter(x=>x!==r):[...S.bag,r];render();return}
   if(d.alive!==undefined){const p=S.players[+d.alive];p.alive=!p.alive;if(p.alive)p.ghost=true;render();return}
   if(d.mark!==undefined){const p=S.players[+d.mark],m=d.m;p.marks=p.marks.includes(m)?p.marks.filter(x=>x!==m):[...p.marks,m];render();return}

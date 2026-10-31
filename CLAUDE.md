@@ -12,6 +12,7 @@ Appli compagnon du conteur pour **Blood on the Clocktower** (script Trouble Brew
 - Données : `ROLES` (nom, type town/out/min/dem, capacité courte), `DETAIL` (texte long + conseil conteur), `RULES`, `SCRIPT`, `COMP` (compo par nombre de joueurs), `FIRST` / `OTHER` (ordre de nuit), `HINT`.
 - État : objet `S` sauvegardé dans `localStorage` (clé `botc-grimoire-v1`). `timer` et `vote` sont volatils.
 - Rendu : `render()` reconstruit `#app` via les vues `vSetup`, `vGrim`, `vNight`, `vDay`, `vGuide`. Événements délégués sur `document` via `data-*`.
+- Grimoire : vue cercle par défaut (`vRing`, place 1 en haut, sens horaire ; taille des jetons et largeur des noms selon le nombre de joueurs), fiche du joueur sélectionné (`gsel`) rendue par `grimRow` ; vue liste via `S.gview="liste"`.
 - Écran de révélation : `#veil`, fonction `reveal(i, stage)`.
 - Distribution par lien (`S.dist==="link"`) : `linkFor(p)` met `[1, rôle affiché, nom, minute du tirage]` en JSON, brouillé (`xorB`) et en base64url dans le fragment `#j=…` (jamais envoyé au serveur). L'Ivrogne reçoit son faux rôle. `readLink` décode. Changer ce format casse les liens déjà envoyés : incrémenter la version (1er élément).
 - Vue joueur : si l'URL commence par `#j=`, `bootPlayer()` affiche `vPlayer` sans appeler `render()` ni toucher à `S`/localStorage.
