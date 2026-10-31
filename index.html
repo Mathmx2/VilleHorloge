@@ -281,7 +281,7 @@ const SCRIPT = [
 
 // ---------- État ----------
 const KEY="botc-grimoire-v1";
-const APP_V="10"; // à garder égal au numéro de cache de sw.js (grimoire-vN)
+const APP_V="11"; // à garder égal au numéro de cache de sw.js (grimoire-vN)
 let S = load() || fresh(8);
 S.claims=S.claims||[];
 let tab = "setup";
@@ -679,7 +679,9 @@ function vTable(){
     <button class="btn wide" data-act="table-open">Ouvrir la table</button></div>`;
   const st={opening:"Ouverture…",open:"Ouverte",error:"Connexion impossible, nouvel essai…"}[H.st]||"";
   return `<div class="box stack"><div class="row" style="justify-content:space-between"><span class="lbl">Table connectée</span><span class="pill ${H.st==="open"?"ok":""}">${st}</span></div>
-    <div class="row"><button class="btn pri" data-act="table-qr">QR d'invitation</button><button class="btn" data-act="table-share">Envoyer le lien</button></div>
+    <div class="qr" style="margin:0 auto;width:min(220px,62vw)" role="img" aria-label="QR code d'invitation">${qrSVG(tableLink())}</div>
+    <p class="sub" style="text-align:center">Les joueurs scannent ce code avec l'appareil photo de leur téléphone.</p>
+    <div class="row" style="justify-content:center"><button class="btn pri" data-act="table-qr">Plein écran</button><button class="btn" data-act="table-share">Envoyer le lien</button></div>
     <p class="sub">Chacun choisit son nom en se connectant : entre d'abord les noms ci-dessus.</p>
     <div id="table-seats">${vSeats()}</div>
     <p class="sub">Garde l'appli ouverte pendant la partie : c'est ton téléphone qui fait le lien. Les morts apparaissent chez les joueurs à l'aube, pas avant.</p>
@@ -916,7 +918,8 @@ document.addEventListener("click",e=>{
     case "reset":confirmReset=true;break;
     case "reset-no":confirmReset=false;break;
     case "reset-yes":S={...fresh(S.count),room:S.room,host:S.host,claims:S.claims};confirmReset=false;break;
-    case "table-open":openTable();return;
+    // rendu direct : refresh() s'abstient quand un champ a le focus, ce qui arrive sur iPhone (toucher un bouton ne lui donne pas le focus)
+    case "table-open":document.activeElement&&document.activeElement.blur();openTable();break;
     case "table-close":closeTable();break;
     case "table-qr":showInvite();return;
     case "table-share":shareInvite();return;
