@@ -14,7 +14,7 @@
   --night:#121626; --panel:#1b2036; --panel2:#242a45; --line:#343b5c;
   --ink:#e9e4d6; --dim:#9a9fb8; --brass:#c9a45c; --brass-d:#8e7136;
   --good:#5d8fd6; --evil:#c9474f; --ok:#5fae7a;
-  --qr-light:#fff; --qr-dark:#000;
+  --qr-light:#fff; --qr-dark:#000; --trav:#a58bd8;
   --f-disp:"IM Fell English SC", Georgia, serif;
   --f-body:"Alegreya Sans", system-ui, sans-serif;
   color-scheme:dark;
@@ -47,7 +47,8 @@ input[type=text],select{background:var(--panel2);border:1px solid var(--line);bo
 .comp{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;text-align:center}
 .comp div{background:var(--panel2);border-radius:8px;padding:8px 4px}
 .comp b{display:block;font-size:1.4rem;font-variant-numeric:tabular-nums}
-.t-good{color:var(--good)} .t-evil{color:var(--evil)}
+.t-good{color:var(--good)} .t-evil{color:var(--evil)} .t-trav{color:var(--trav)}
+.pill.trav{color:var(--trav)}
 .stepper{display:flex;align-items:center;gap:12px}
 .stepper b{font-size:2rem;font-family:var(--f-disp);min-width:2ch;text-align:center;font-variant-numeric:tabular-nums}
 .names{display:flex;flex-direction:column;gap:6px}
@@ -127,7 +128,7 @@ details.role[open]{border-color:var(--brass-d)}
 
 /* jetons de rôle (illustrations originales, img/<id>.webp) */
 .rimg{display:block;flex:none;border-radius:50%;object-fit:cover;aspect-ratio:1;background:var(--panel2);border:2px solid var(--line)}
-.rimg.good{border-color:var(--good)} .rimg.evil{border-color:var(--evil)}
+.rimg.good{border-color:var(--good)} .rimg.evil{border-color:var(--evil)} .rimg.trav{border-color:var(--trav)}
 .rimg.s{width:44px;height:44px} .rimg.l{width:min(180px,50vw);height:auto;margin:0 auto;border-width:3px}
 .card .rimg.good{box-shadow:0 0 24px #5d8fd655} .card .rimg.evil{box-shadow:0 0 24px #c9474f55}
 .rrow{display:flex;gap:12px;align-items:center;min-width:0}
@@ -168,21 +169,36 @@ const ROLES = {
   espion:{n:"Espion",t:"min",a:"Chaque nuit : consulte le Grimoire. Peut passer pour bon, Villageois ou Étranger."},
   ecarlate:{n:"Femme écarlate",t:"min",a:"S'il reste 5 vivants ou plus et que le Démon meurt, elle devient le Démon."},
   baron:{n:"Baron",t:"min",a:"Ajoute 2 Étrangers à la partie (préparation)."},
-  diablotin:{n:"Diablotin",t:"dem",a:"Chaque nuit sauf la 1re : tue un joueur. S'il se tue, un Sbire devient Diablotin."}
+  diablotin:{n:"Diablotin",t:"dem",a:"Chaque nuit sauf la 1re : tue un joueur. S'il se tue, un Sbire devient Diablotin."},
+  // Voyageurs : arrivent en retard ou partent tôt, hors composition. Rôle public, camp secret choisi par le conteur.
+  boucemissaire:{n:"Bouc émissaire",t:"trav",a:"Si un joueur de ton camp est exécuté, tu peux être exécuté à sa place."},
+  pistolero:{n:"Pistolero",t:"trav",a:"Chaque jour, après le 1er vote, tu peux désigner un joueur qui a voté : il meurt."},
+  mendiant:{n:"Mendiant",t:"trav",a:"Tu dois utiliser un jeton de vote pour voter. Si un mort te donne le sien, tu apprends son camp. Tu es sobre et en bonne santé."},
+  bureaucrate:{n:"Bureaucrate",t:"trav",a:"Chaque nuit, désigne un joueur (pas toi) : demain, son vote compte triple."},
+  voleur:{n:"Voleur",t:"trav",a:"Chaque nuit, désigne un joueur (pas toi) : demain, son vote compte en négatif."}
 };
-const TEAM = {town:"Villageois",out:"Étranger",min:"Sbire",dem:"Démon"};
-const TEAMS = {town:"Villageois",out:"Étrangers",min:"Sbires",dem:"Démon"};
+const TEAM = {town:"Villageois",out:"Étranger",min:"Sbire",dem:"Démon",trav:"Voyageur"};
+const TEAMS = {town:"Villageois",out:"Étrangers",min:"Sbires",dem:"Démon",trav:"Voyageurs"};
+const TYPES = ["town","out","min","dem","trav"];
+const teamCls = t => t==="trav"?"t-trav":t==="min"||t==="dem"?"t-evil":"t-good";
 const isEvil = r => r && (ROLES[r].t==="min"||ROLES[r].t==="dem");
-const tokImg = (r,size) => `<img class="rimg ${size} ${isEvil(r)?"evil":"good"}" src="img/${r}.webp" alt="" loading="lazy" decoding="async">`;
+const isTrav = r => !!r && ROLES[r] && ROLES[r].t==="trav";
+// camp réel d'un joueur : celui d'un Voyageur est choisi par le conteur
+const pEvil = p => isTrav(p.role) ? p.align==="evil" : isEvil(p.role);
+// ev : camp à montrer (carte du joueur lui-même) ; sans ev, un Voyageur garde un liseré neutre
+const tokImg = (r,size,ev) => `<img class="rimg ${size} ${ev!==undefined?(ev?"evil":"good"):isTrav(r)?"trav":isEvil(r)?"evil":"good"}" src="img/${r}.webp" alt="" loading="lazy" decoding="async">`;
 const COMP = {5:[3,0,1,1],6:[3,1,1,1],7:[5,0,1,1],8:[5,1,1,1],9:[5,2,1,1],10:[7,0,2,1],11:[7,1,2,1],12:[7,2,2,1],13:[9,0,3,1],14:[9,1,3,1],15:[9,2,3,1]};
 const byType = t => Object.keys(ROLES).filter(k=>ROLES[k].t===t);
 
 // Ordre de nuit : [id, quand]
-const FIRST = ["_minion","_demon","empoisonneur","espion","lavandiere","bibliothecaire","enqueteur","chef","empathe","voyante","majordome"];
-const OTHER = ["empoisonneur","moine","ecarlate","diablotin","corbeaux","croquemort","empathe","voyante","majordome","espion"];
+const FIRST = ["_minion","_demon","_trav","bureaucrate","voleur","empoisonneur","espion","lavandiere","bibliothecaire","enqueteur","chef","empathe","voyante","majordome"];
+const OTHER = ["_trav","bureaucrate","voleur","empoisonneur","moine","ecarlate","diablotin","corbeaux","croquemort","empathe","voyante","majordome","espion"];
 const HINT = {
   _minion:"Réveille les Sbires : montre-leur qui est le Démon et qui sont les autres Sbires.",
   _demon:"Réveille le Démon : montre-lui ses Sbires et 3 rôles bons hors jeu (bluffs).",
+  _trav:"Réveille le Voyageur maléfique arrivé aujourd'hui : montre-lui qui est le Démon. Pas les Sbires, pas de bluffs.",
+  bureaucrate:"Il désigne un joueur (pas lui) : marque-le Vote ×3.",
+  voleur:"Il désigne un joueur (pas lui) : marque-le Vote négatif.",
   empoisonneur:"Il désigne un joueur : marque-le Empoisonné.",
   espion:"Montre-lui le Grimoire.",
   lavandiere:"Montre 2 joueurs et un jeton de Villageois.",
@@ -222,11 +238,16 @@ const DETAIL = {
   espion:["Chaque nuit, il consulte le Grimoire. Il peut passer pour bon, Villageois ou Étranger.","Montre-lui l'écran Grimoire en entier, puis récupère le téléphone."],
   ecarlate:["S'il reste 5 joueurs vivants ou plus et que le Démon meurt, elle devient le Démon.","Change son rôle en Diablotin dans le Grimoire et préviens-la en secret la nuit suivante."],
   baron:["Sa présence ajoute 2 Étrangers à la partie, à la place de 2 Villageois.","L'appli fait l'ajustement au tirage."],
-  diablotin:["Chaque nuit sauf la première, il tue un joueur. S'il se tue lui-même, un Sbire vivant devient le nouveau Diablotin.","Ce n'est pas un tirage au sort. Si la Femme écarlate est en vie et qu'il restait 5 vivants ou plus, c'est forcément elle. Sinon, c'est toi qui choisis quel Sbire vivant devient Diablotin : prends celui qui rendra la partie la plus serrée. Change son rôle dans le Grimoire, puis réveille-le cette nuit pour lui montrer le jeton Diablotin."]
+  diablotin:["Chaque nuit sauf la première, il tue un joueur. S'il se tue lui-même, un Sbire vivant devient le nouveau Diablotin.","Ce n'est pas un tirage au sort. Si la Femme écarlate est en vie et qu'il restait 5 vivants ou plus, c'est forcément elle. Sinon, c'est toi qui choisis quel Sbire vivant devient Diablotin : prends celui qui rendra la partie la plus serrée. Change son rôle dans le Grimoire, puis réveille-le cette nuit pour lui montrer le jeton Diablotin."],
+  boucemissaire:["Si un joueur de son camp doit être exécuté, le conteur peut exécuter le Bouc émissaire à sa place.","À toi de décider. Un Bouc émissaire mauvais sert surtout à sauver le Démon au dernier moment."],
+  pistolero:["Chaque jour, juste après le décompte du 1er vote, il peut désigner un joueur qui a voté : ce joueur meurt.","Il peut passer son tour. En cas de doute, fais relever les mains de ceux qui ont voté."],
+  mendiant:["Il ne peut voter qu'avec un jeton de vote donné par un mort. Quand un mort lui donne le sien, il apprend en secret le camp de ce mort. Il est sobre et en bonne santé.","Chaque vote lui coûte un jeton. Quand un mort lui donne son jeton, coche « Vote fantôme utilisé » chez ce mort et dis au Mendiant son camp à l'oreille."],
+  bureaucrate:["Chaque nuit, il désigne un autre joueur : le lendemain, le vote de ce joueur compte pour 3.","Le joueur ne sait rien. Compte son vote triple au moment du décompte (+3 dans l'onglet Jour)."],
+  voleur:["Chaque nuit, il désigne un autre joueur : le lendemain, le vote de ce joueur compte en négatif.","Le joueur ne sait rien. Au décompte, retire 1 au lieu d'ajouter 1 quand il lève la main."]
 };
 
 const RULES = [
-  ["Le but","Le Bien gagne si le Démon meurt. Le Mal gagne s'il ne reste que 2 joueurs vivants (le Démon compris)."],
+  ["Le but","Le Bien gagne si le Démon meurt. Le Mal gagne s'il ne reste que 2 joueurs vivants (le Démon compris, les Voyageurs ne comptent pas)."],
   ["Les équipes","Bien : Villageois (capacités utiles) et Étrangers (capacités gênantes). Mal : les Sbires et un Démon, qui se connaissent dès 7 joueurs."],
   ["La nuit","Tout le monde ferme les yeux. Le conteur réveille les rôles un par un, dans l'ordre de nuit. Ils agissent en silence, par gestes."],
   ["Le jour","Le conteur annonce les morts de la nuit. Les joueurs discutent librement, en groupe ou en aparté, puis on passe aux nominations."],
@@ -234,14 +255,17 @@ const RULES = [
   ["Votes","On compte les mains levées dans le sens du cercle. Il faut au moins la moitié des vivants. Le plus haut score du jour est exécuté au coucher du soleil ; en cas d'égalité, personne. Une seule exécution par jour."],
   ["Les morts","Ils restent dans la partie, peuvent parler et ont un seul vote pour le reste du jeu. Ils perdent leur capacité."],
   ["Ivre et empoisonné","Un joueur ivre ou empoisonné n'a plus de capacité, sans le savoir. Ses infos peuvent être fausses."],
-  ["Ce qu'on peut dire","Tout, y compris mentir. Seule interdiction : montrer son rôle dans l'appli ou parler pendant la nuit."]
+  ["Ce qu'on peut dire","Tout, y compris mentir. Seule interdiction : montrer son rôle dans l'appli ou parler pendant la nuit."],
+  ["Voyageurs","Pour ceux qui arrivent en retard ou partent tôt. Le joueur choisit son Voyageur, que tout le monde connaît ; le conteur choisit son camp, qui reste secret. Un Voyageur maléfique apprend qui est le Démon."],
+  ["Exil","Un Voyageur ne peut pas être exécuté : on l'exile. N'importe qui peut lancer un exil, et tout le monde peut le soutenir, même les morts sans dépenser leur vote fantôme. Il faut le soutien d'au moins la moitié de la ville. Ce n'est ni une nomination ni une exécution, et il peut y en avoir plusieurs par jour."]
 ];
 const SCRIPT = [
   ["Avant la partie",["Fais asseoir tout le monde en cercle et entre les noms dans cet ordre.","Tire les rôles, puis passe le téléphone à chacun dans l'onglet Partie.","Explique les règles en 2 minutes (onglet Règles), surtout les votes et les morts."]],
   ["Première nuit",["Dis : « Tout le monde ferme les yeux. »","Suis l'onglet Nuit de haut en bas. Dès 7 joueurs, réveille les Sbires puis le Démon pour qu'ils se reconnaissent.","Coche chaque étape. Quand c'est fini : « Tout le monde ouvre les yeux. »"]],
   ["Chaque jour",["Annonce qui est mort cette nuit, sans dire comment.","Lance le minuteur de discussion (5 min au début, moins ensuite).","Ouvre les nominations. Pour chaque nomination : le nominateur explique, le nominé se défend, puis on vote.","Au coucher du soleil, exécute le plus haut score s'il atteint le seuil. Touche Exécuter."]],
   ["Nuits suivantes",["Même chose avec l'ordre des autres nuits. Les marqueurs Empoisonné et Protégé s'effacent tout seuls.","Le Croque-mort ne se réveille que si quelqu'un a été exécuté. Le Gardien des corbeaux seulement s'il vient de mourir."]],
-  ["Fin de partie",["Dès que le Démon meurt (et que la Femme écarlate ne prend pas le relais), le Bien gagne.","S'il ne reste que 2 vivants, le Mal gagne.","Révèle le Grimoire à tout le monde : c'est le meilleur moment de la partie."]],
+  ["Voyageurs",["Un retardataire arrive ? Onglet Partie → « Ajouter un voyageur » : son nom, sa place dans le cercle, le Voyageur qu'il a choisi et le camp que tu lui donnes.","Annonce son Voyageur à tout le monde, et dis-lui son camp en secret (ou laisse-le le voir sur son téléphone).","S'il est maléfique, l'appli te rappelle de lui montrer le Démon la nuit suivante.","Pour un exil, choisis le Voyageur dans l'onglet Jour : le seuil passe à la moitié de toute la ville."]],
+  ["Fin de partie",["Dès que le Démon meurt (et que la Femme écarlate ne prend pas le relais), le Bien gagne.","S'il ne reste que 2 vivants (sans compter les Voyageurs), le Mal gagne.","Révèle le Grimoire à tout le monde : c'est le meilleur moment de la partie."]],
   ["Conseils de conteur",["Ton but est une partie serrée, pas de faire gagner un camp.","Ivrogne et Empoisonneur sont tes outils pour brouiller les infos : donne des infos fausses mais crédibles.","Garde un bon rythme : une nuit ne doit pas durer plus de quelques minutes.","Chuchote ou utilise des gestes pour que personne n'entende qui tu réveilles."]]
 ];
 
@@ -253,20 +277,29 @@ let tab = "setup";
 let confirmReset=false, pending=null, timer={left:300,run:false,id:null}, vote={nominee:"",n:0};
 // pending : action destructive en attente de confirmation ("draw" | "plus" | "minus")
 
-function fresh(n){return {count:n,players:Array.from({length:n},(_,i)=>({name:"Joueur "+(i+1),role:"",fake:"",alive:true,ghost:true,seen:false,marks:[]})),bluffs:[],night:1,done:{},log:[],claims:[],phase:"night"};}
+// déclaration de fonction (hissée) : fresh() sert dès le chargement, avant cette ligne
+function newPlayer(name){return {name,role:"",fake:"",alive:true,ghost:true,seen:false,marks:[]}}
+function fresh(n){return {count:n,players:Array.from({length:n},(_,i)=>newPlayer("Joueur "+(i+1))),bluffs:[],night:1,done:{},log:[],claims:[],phase:"night"};}
 function load(){try{const v=localStorage.getItem(KEY);return v?JSON.parse(v):null}catch(e){return null}}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}broadcast()}
 function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
 const esc = s => String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 
+// les places sont des index : claims et pubAlive suivent chaque insertion ou retrait
+function insertSeat(i,p){S.players.splice(i,0,p);S.claims.splice(i,0,null);if(S.pubAlive)S.pubAlive.splice(i,0,true)}
+function removeSeat(i){S.players.splice(i,1);S.claims.splice(i,1);if(S.pubAlive)S.pubAlive.splice(i,1)}
+const base = ()=>S.players.filter(p=>!p.trav);
+// S.count = joueurs hors Voyageurs (la composition ne compte pas les Voyageurs)
 function resize(n){
   n=Math.max(5,Math.min(15,n));
-  while(S.players.length<n) S.players.push({name:"Joueur "+(S.players.length+1),role:"",fake:"",alive:true,ghost:true,seen:false,marks:[]});
-  S.players.length=n; S.count=n; S.claims=S.claims.slice(0,n);
+  while(base().length<n) insertSeat(S.players.length,newPlayer("Joueur "+(S.players.length+1)));
+  while(base().length>n) removeSeat(S.players.map(p=>!p.trav).lastIndexOf(true));
+  S.count=n;
 }
 // vrai seulement si chaque joueur a un rôle (protège aussi des sauvegardes incohérentes)
 const hasRoles = ()=>S.players.length>0&&S.players.every(p=>p.role&&ROLES[p.role]);
 function clearRoles(){
+  for(let i=S.players.length-1;i>=0;i--) if(S.players[i].trav) removeSeat(i);
   S.players.forEach(p=>{p.role="";p.fake="";p.alive=true;p.ghost=true;p.seen=false;p.marks=[]});
   S.bluffs=[];S.night=1;S.done={};S.log=[];
 }
@@ -281,9 +314,10 @@ function draw(){
   const freeTown=shuffle(byType("town").filter(r=>!inPlay.has(r)));
   const fake = inPlay.has("ivrogne") ? freeTown.shift() : "";
   S.bluffs = shuffle([...freeTown,...byType("out").filter(r=>!inPlay.has(r)&&r!=="ivrogne")]).slice(0,3);
-  S.players.forEach((p,i)=>{p.role=all[i];p.fake=p.role==="ivrogne"?fake:"";p.alive=true;p.ghost=true;p.seen=false;p.marks=[]});
+  // les Voyageurs gardent leur rôle : on ne tire que pour les autres
+  base().forEach((p,i)=>{p.role=all[i];p.fake=p.role==="ivrogne"?fake:"";p.alive=true;p.ghost=true;p.seen=false;p.marks=[]});
   // fausse piste de la Voyante : un joueur bon au hasard
-  if(inPlay.has("voyante")){const g=shuffle(S.players.filter(p=>!isEvil(p.role)));if(g[0])g[0].marks.push("Fausse piste")}
+  if(inPlay.has("voyante")){const g=shuffle(base().filter(p=>!isEvil(p.role)));if(g[0])g[0].marks.push("Fausse piste")}
   S.night=1;S.done={};S.log=[];S.drawnAt=Date.now();S.phase="night";S.pubAlive=S.players.map(()=>true);
 }
 
@@ -303,7 +337,7 @@ function vGuide(){
   let body="";
   if(gtab==="regles") body=RULES.map(([h,t])=>`<div class="box stack"><h3>${h}</h3><p>${t}</p></div>`).join("");
   else if(gtab==="conteur") body=SCRIPT.map(([h,l])=>`<div class="box stack"><h3>${h}</h3><ol class="ol">${l.map(x=>`<li>${x}</li>`).join("")}</ol></div>`).join("");
-  else body=["town","out","min","dem"].map(t=>`<h3 class="${t==="min"||t==="dem"?"t-evil":"t-good"}" style="margin-top:8px">${TEAMS[t]}</h3>`+byType(t).map(r=>`
+  else body=TYPES.map(t=>`<h3 class="${teamCls(t)}" style="margin-top:8px">${TEAMS[t]}</h3>`+byType(t).map(r=>`
     <details class="box role"><summary><div class="rrow">${tokImg(r,"s")}<div><b>${ROLES[r].n}</b><br><span class="sub">${ROLES[r].a}</span></div></div></summary>
       <div class="stack" style="margin-top:10px"><p>${DETAIL[r][0]}</p><p class="tip"><span class="lbl">Conteur</span><br>${DETAIL[r][1]}</p>
       ${FIRST.includes(r)||OTHER.includes(r)?`<p class="sub">Se réveille : ${[FIRST.includes(r)?"1re nuit":"",OTHER.includes(r)?"autres nuits":""].filter(Boolean).join(" et ")}</p>`:`<p class="sub">Ne se réveille pas la nuit.</p>`}</div>
@@ -336,14 +370,15 @@ function vSetup(){
         <div><b class="t-good">${t}</b>Villag.</div><div><b class="t-good">${o}</b>Étrang.</div>
         <div><b class="t-evil">${m}</b>Sbire${m>1?"s":""}</div><div><b class="t-evil">${d}</b>Démon</div>
       </div>
-      <p class="sub">Si le Baron sort, 2 Villageois deviennent Étrangers.</p>
-      ${pending==="plus"||pending==="minus"?pendBox("Les rôles sont déjà tirés : changer le nombre de joueurs les efface. Il faudra les retirer et les redistribuer."):""}
+      <p class="sub">Si le Baron sort, 2 Villageois deviennent Étrangers.${S.players.length>S.count?` Plus ${S.players.length-S.count} Voyageur${S.players.length-S.count>1?"s":""}, hors composition.`:""}</p>
+      ${pending==="plus"||pending==="minus"?pendBox("Les rôles sont déjà tirés : changer le nombre de joueurs les efface et retire les Voyageurs. Il faudra les retirer et les redistribuer."):""}
     </div>
     <div class="box stack">
       <span class="lbl">Joueurs, dans l'ordre où ils sont assis</span>
-      <div class="names">${S.players.map((p,i)=>`<div class="row"><span class="seat">${i+1}</span><input type="text" id="name-${i}" data-name="${i}" maxlength="30" value="${esc(p.name)}" aria-label="Nom du joueur ${i+1}"></div>`).join("")}</div>
+      <div class="names">${S.players.map((p,i)=>`<div class="row"><span class="seat">${i+1}</span><input type="text" id="name-${i}" data-name="${i}" maxlength="30" value="${esc(p.name)}" aria-label="Nom du joueur ${i+1}">${p.trav?`<span class="pill trav">${ROLES[p.role].n}</span><button class="btn sm" data-leave="${i}" aria-label="${esc(p.name)} quitte la partie">Retirer</button>`:""}</div>`).join("")}</div>
       <p class="sub">L'ordre compte : il sert au calcul du Chef et de l'Empathe.</p>
     </div>
+    ${vTravForm()}
     ${vTable()}
     <button class="btn ${drawn?"":"pri"} wide" data-act="draw">${drawn?"Retirer les rôles":"Tirer les rôles au hasard"}</button>
     ${pending==="draw"?pendBox("Retirer redistribue tous les rôles et remet la partie à zéro (nuit, morts, marqueurs, historique)."):""}
@@ -352,6 +387,33 @@ function vSetup(){
       ?`<button class="btn danger" data-act="reset-yes">Oui, tout effacer</button><button class="btn" data-act="reset-no">Annuler</button>`
       :`<button class="btn sm" data-act="reset">Nouvelle partie (tout effacer)</button>`}</div>
   </div>`;
+}
+
+// ajout d'un Voyageur : état du formulaire, volatil
+let tv=null;
+function vTravForm(){
+  const free=byType("trav").filter(r=>!S.players.some(p=>p.role===r));
+  if(!tv) return free.length&&S.players.length<20?`<button class="btn wide" data-act="tv-open">Ajouter un voyageur</button>`:"";
+  if(!free.includes(tv.role))tv.role=free[0]||"";
+  const seats=S.players.map((p,i)=>`<option value="${i+1}" ${tv.seat===i+1?"selected":""}>Après ${i+1}. ${esc(p.name)}</option>`).join("");
+  return `<div class="box stack"><span class="lbl">Nouveau voyageur</span>
+    <input type="text" id="tv-name" maxlength="30" placeholder="Son nom" value="${esc(tv.name)}" aria-label="Nom du voyageur">
+    <select id="tv-seat" aria-label="Place dans le cercle">${seats}</select>
+    <select id="tv-role" aria-label="Voyageur choisi par le joueur">${free.map(r=>`<option value="${r}" ${tv.role===r?"selected":""}>${ROLES[r].n}</option>`).join("")}</select>
+    <p class="sub">${ROLES[tv.role]?ROLES[tv.role].a:""}</p>
+    <span class="lbl">Son camp (secret, c'est toi qui choisis)</span>
+    <div class="seg"><button class="btn sm ${tv.align==="good"?"pri":""}" data-tvalign="good">Bien</button><button class="btn sm ${tv.align==="evil"?"pri":""}" data-tvalign="evil">Mal</button></div>
+    <div class="row"><button class="btn pri" data-act="tv-add">Ajouter</button><button class="btn" data-act="tv-cancel">Annuler</button></div>
+  </div>`;
+}
+function addTraveller(){
+  if(!tv||!ROLES[tv.role])return;
+  const p={...newPlayer(tv.name.trim()||"Voyageur"),role:tv.role,trav:true,align:tv.align,
+    // nuit où un Voyageur maléfique apprend le Démon : cette nuit, ou la prochaine s'il arrive de jour
+    told:S.phase==="day"?S.night+1:S.night};
+  insertSeat(Math.min(tv.seat,S.players.length),p);
+  S.log.push(`${S.phase==="day"?"J":"N"}${S.night} : ${p.name} arrive (Voyageur : ${ROLES[p.role].n})`);
+  tv=null;vote={nominee:"",n:0};
 }
 
 function vRoles(){
@@ -389,11 +451,12 @@ const unb64u = s=>Uint8Array.from(atob(s.replace(/-/g,"+").replace(/_/g,"/")),c=
 function linkFor(p){
   if(!S.drawnAt){S.drawnAt=Date.now();save()}
   // l'Ivrogne reçoit son faux rôle : le lien ne contient jamais « ivrogne »
-  const data=new TextEncoder().encode(JSON.stringify([1,p.fake||p.role,p.name,Math.floor(S.drawnAt/60000)]));
+  // 5e élément facultatif : camp d'un Voyageur ("e" ou "g")
+  const data=new TextEncoder().encode(JSON.stringify([1,p.fake||p.role,p.name,Math.floor(S.drawnAt/60000),...p.trav?[p.align==="evil"?"e":"g"]:[]]));
   return location.origin+location.pathname+"#j="+b64u(xorB(data));
 }
 function readLink(s){
-  try{const a=JSON.parse(new TextDecoder().decode(xorB(unb64u(s))));if(a[0]!==1||!ROLES[a[1]])return null;return {r:a[1],n:String(a[2]),t:+a[3]*60000}}catch(e){return null}
+  try{const a=JSON.parse(new TextDecoder().decode(xorB(unb64u(s))));if(a[0]!==1||!ROLES[a[1]])return null;return {r:a[1],n:String(a[2]),t:+a[3]*60000,al:a[4]==="e"?"evil":"good"}}catch(e){return null}
 }
 async function shareLink(i){
   const p=S.players[i],url=linkFor(p);
@@ -486,25 +549,28 @@ function qrSVG(text){
 let pshow=false;
 const fmtDate=t=>{const d=new Date(t);return d.toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"})+" à "+d.toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"})};
 // rôle caché derrière un geste, pour que les voisins ne le voient pas par-dessus l'épaule
-function roleCard(r){
+// align : camp d'un Voyageur, choisi par le conteur et connu du seul joueur concerné
+function roleCard(r,align){
   if(!pshow) return `<p>Vérifie que personne ne regarde ton écran.</p><button class="btn pri" data-pv="show">Voir mon rôle</button>`;
-  const R=ROLES[r],ev=isEvil(r);
+  const R=ROLES[r],trav=isTrav(r),ev=trav?align==="evil":isEvil(r);
   const wakes=[FIRST.includes(r)?"la 1re nuit":"",OTHER.includes(r)?"les autres nuits":""].filter(Boolean).join(" et ");
+  const extra=trav?(ev?" Tu es dans le camp du Mal : le conteur te montrera qui est le Démon.":" Tu es dans le camp du Bien.")+" Ton Voyageur est connu de tous, ton camp est secret."
+    :ev?" Dès 7 joueurs, il te présentera tes alliés pendant la 1re nuit.":"";
   return `<div class="card ${ev?"evil":"good"}"><span class="team ${ev?"t-evil":"t-good"}">${TEAM[R.t]} · ${ev?"Maléfique":"Bon"}</span>
-      ${tokImg(r,"l")}<div class="rname">${R.n}</div><p>${DETAIL[r][0]}</p>
-      <p class="sub">${wakes?`Le conteur peut te réveiller ${wakes}.`:"Tu ne te réveilles pas la nuit."}${ev?" Dès 7 joueurs, il te présentera tes alliés pendant la 1re nuit.":""}</p></div>
+      ${tokImg(r,"l",ev)}<div class="rname">${R.n}</div><p>${DETAIL[r][0]}</p>
+      <p class="sub">${wakes?`Le conteur peut te réveiller ${wakes}.`:trav&&ev?"":"Tu ne te réveilles pas la nuit."}${extra}</p></div>
     <button class="btn pri" data-pv="hide">Cacher mon rôle</button>`;
 }
 // feuille du script + règles : infos publiques, identiques pour tous
 const pRefs=()=>`<details class="box" style="margin-top:22px"><summary class="lbl" style="cursor:pointer">Les rôles du script</summary>
-    <div class="stack" style="margin-top:12px">${["town","out","min","dem"].map(t=>`<h3 class="${t==="min"||t==="dem"?"t-evil":"t-good"}">${TEAMS[t]}</h3>${byType(t).map(r=>`<div class="rrow">${tokImg(r,"s")}<div><b>${ROLES[r].n}</b><p class="sub">${ROLES[r].a}</p></div></div>`).join("")}`).join("")}</div></details>
+    <div class="stack" style="margin-top:12px">${TYPES.map(t=>`<h3 class="${teamCls(t)}">${TEAMS[t]}</h3>${byType(t).map(r=>`<div class="rrow">${tokImg(r,"s")}<div><b>${ROLES[r].n}</b><p class="sub">${ROLES[r].a}</p></div></div>`).join("")}`).join("")}</div></details>
   <details class="box" style="margin-top:12px"><summary class="lbl" style="cursor:pointer">Règles du jeu</summary>
     <div class="stack" style="margin-top:12px">${RULES.map(([h,t])=>`<div><h3>${h}</h3><p class="sub">${t}</p></div>`).join("")}</div></details>`;
 function vPlayer(J){
   if(!J) return `<div class="pv"><h1>Grimoire de poche</h1><div class="box"><p>Ce lien est invalide ou incomplet.</p><p class="sub" style="margin-top:6px">Demande au conteur de te le renvoyer.</p></div></div>`;
   return `<div class="pv">
     <div class="stack"><span class="lbl">Blood on the Clocktower · Trouble Brewing</span><h1>${esc(J.n)}</h1><p class="sub">Partie tirée le ${fmtDate(J.t)}</p></div>
-    ${roleCard(J.r)}
+    ${roleCard(J.r,J.al)}
     <p class="sub">Tu peux mentir sur ton rôle, mais ne montre jamais cet écran. Si le conteur t'envoie un nouveau lien, c'est le nouveau qui compte.</p>
   </div>${pRefs()}`;
 }
@@ -553,7 +619,9 @@ function sendState(c){
   // la nuit, on montre les morts tels qu'annoncés à la tombée de la nuit : rien ne fuit avant l'aube
   const alive=S.players.map((q,k)=>day||!S.pubAlive?q.alive:S.pubAlive[k]!==false);
   c.send({t:"state",v:1,names:S.players.map(q=>q.name),taken:S.players.map((_,k)=>!!S.claims[k]),alive,ghost:S.players.map(q=>q.ghost),
-    drawn,drawnAt:S.drawnAt||0,night:S.night,phase:S.phase||"night",seat:i,role:drawn&&p?(p.fake||p.role):""});
+    // les Voyageurs sont publics (leur rôle, pas leur camp) ; le camp n'est envoyé qu'au Voyageur lui-même
+    trav:S.players.map(q=>q.trav?q.role:""),
+    drawn,drawnAt:S.drawnAt||0,night:S.night,phase:S.phase||"night",seat:i,role:p&&(drawn||p.trav)?(p.fake||p.role):"",align:p&&p.trav?p.align:""});
 }
 let bcT=null;
 function broadcast(){if(!H.conns.size)return;clearTimeout(bcT);bcT=setTimeout(()=>H.conns.forEach(c=>{try{if(c.open)sendState(c)}catch(e){}}),150)}
@@ -631,36 +699,40 @@ function vTablePlayer(){
   if(seat<0) return head+`<div class="sec"><h1>Qui es-tu ?</h1><p class="sub">Choisis ton nom. Si tu n'apparais pas, demande au conteur de t'ajouter.</p>
     <div class="plist">${s.names.map((n,i)=>`<button class="pl btn" style="text-align:left" data-claim="${i}" ${s.taken[i]||!on?"disabled":""}>
       <span class="tok">${i+1}</span><span class="nm">${esc(n)}</span><span class="pill">${s.taken[i]?"Pris":"Libre"}</span></button>`).join("")}</div></div>${pRefs()}`;
-  const role=s.drawn&&ROLES[s.role]?s.role:"";
+  // le conteur n'envoie un rôle qu'une fois tiré (ou pour un Voyageur, dès son arrivée)
+  const role=ROLES[s.role]?s.role:"";
+  const trav=k=>s.trav&&isTrav(s.trav[k])?` <span class="pill trav">${ROLES[s.trav[k]].n}</span>`:"";
   const nAlive=s.alive.filter(Boolean).length;
   return head+`<div class="pv">
-    <div class="stack"><h1>${esc(s.names[seat])}</h1><p class="sub">Place ${seat+1}${role?` · partie tirée le ${fmtDate(s.drawnAt)}`:""}</p></div>
-    ${role?roleCard(role):`<p class="sub">Le conteur n'a pas encore tiré les rôles. Ton rôle s'affichera ici.</p>`}
+    <div class="stack"><h1>${esc(s.names[seat])}</h1><p class="sub">Place ${seat+1}${s.drawn?` · partie tirée le ${fmtDate(s.drawnAt)}`:""}</p></div>
+    ${role?roleCard(role,s.align):`<p class="sub">Le conteur n'a pas encore tiré les rôles. Ton rôle s'affichera ici.</p>`}
     <p class="sub">Tu peux mentir sur ton rôle, mais ne montre jamais cet écran. Ce n'est pas toi ? Demande au conteur de libérer ta place.</p>
   </div>
-  ${role?`<div class="box stack"><span class="lbl">${s.phase==="day"?"Jour":"Nuit"} ${s.night} · ${nAlive} vivants sur ${s.names.length}</span>
-    <ol class="ol">${s.names.map((n,i)=>`<li>${esc(n)}${s.alive[i]?"":` <span class="sub">† ${s.ghost[i]?"vote fantôme dispo":"vote fantôme utilisé"}</span>`}</li>`).join("")}</ol></div>`:""}
+  ${s.drawn?`<div class="box stack"><span class="lbl">${s.phase==="day"?"Jour":"Nuit"} ${s.night} · ${nAlive} vivants sur ${s.names.length}</span>
+    <ol class="ol">${s.names.map((n,i)=>`<li>${esc(n)}${trav(i)}${s.alive[i]?"":` <span class="sub">† ${s.ghost[i]?"vote fantôme dispo":"vote fantôme utilisé"}</span>`}</li>`).join("")}</ol></div>`:""}
   ${pRefs()}`;
 }
 
 function roleSel(i,p){
-  return `<select id="role-${i}" data-role="${i}" aria-label="Rôle de ${esc(p.name)}">${["town","out","min","dem"].map(t=>`<optgroup label="${TEAM[t]}">${byType(t).map(r=>`<option value="${r}" ${p.role===r?"selected":""}>${ROLES[r].n}</option>`).join("")}</optgroup>`).join("")}</select>`;
+  return `<select id="role-${i}" data-role="${i}" aria-label="Rôle de ${esc(p.name)}">${(p.trav?["trav"]:["town","out","min","dem"]).map(t=>`<optgroup label="${TEAM[t]}">${byType(t).map(r=>`<option value="${r}" ${p.role===r?"selected":""}>${ROLES[r].n}</option>`).join("")}</optgroup>`).join("")}</select>`;
 }
 function vGrim(){
   if(!hasRoles()) return noRoles();
-  const MARKS=["Empoisonné","Protégé","Fausse piste","Capacité utilisée"];
+  const MARKS=["Empoisonné","Protégé","Fausse piste","Capacité utilisée",
+    ...S.players.some(p=>p.role==="bureaucrate")?["Vote ×3"]:[],...S.players.some(p=>p.role==="voleur")?["Vote négatif"]:[]];
   return `<h2>Grimoire</h2>
   <p class="sub">Réservé au conteur. Tape un joueur pour changer son rôle ou ses marqueurs.</p>
   <div class="box stack" style="margin-top:14px"><span class="lbl">Bluffs du Démon</span><p>${S.bluffs.map(b=>ROLES[b].n).join(" · ")||"—"}</p></div>
   <div class="sec"><div class="plist">${S.players.map((p,i)=>{const R=ROLES[p.role];return `
-    <div class="pl ${isEvil(p.role)?"evil":"good"} ${p.alive?"":"dead"}">
+    <div class="pl ${pEvil(p)?"evil":"good"} ${p.alive?"":"dead"}">
       ${tokImg(p.role,"s")}
       <div style="min-width:0"><div class="nm">${i+1}. ${esc(p.name)}${p.alive?"":" †"}</div>
-        <div class="rl">${R.n}${p.fake?` (croit être ${ROLES[p.fake].n})`:""} · ${TEAM[R.t]}</div></div>
+        <div class="rl">${R.n}${p.fake?` (croit être ${ROLES[p.fake].n})`:""} · ${TEAM[R.t]}${p.trav?` (${p.align==="evil"?"Mal":"Bien"})`:""}</div></div>
       <button class="btn sm" data-alive="${i}">${p.alive?"Tuer":"Ranimer"}</button>
       <div class="chips">
         ${MARKS.map(m=>`<button class="chip ${m==="Empoisonné"?"red":""} ${p.marks.includes(m)?"on":""}" data-mark="${i}" data-m="${m}">${m}</button>`).join("")}
         ${p.alive?"":`<button class="chip ${p.ghost?"on":""}" data-ghost="${i}">${p.ghost?"Vote fantôme dispo":"Vote fantôme utilisé"}</button>`}
+        ${p.trav?`<button class="chip ${p.align==="evil"?"red on":"on"}" data-align="${i}">Camp : ${p.align==="evil"?"Mal":"Bien"}</button>`:""}
       </div>
       <details class="pd"><summary>Capacité et rôle</summary><div class="stack">
         <p class="sub">${R.a}</p>${roleSel(i,p)}
@@ -675,8 +747,9 @@ function aliveNeighbours(i){
   return res;
 }
 function calc(id){
-  const P=S.players, evil=P.map(p=>isEvil(p.role));
+  const P=S.players, evil=P.map(pEvil);
   const names=ix=>ix.map(i=>esc(P[i].name)).join(", ");
+  if(id==="_trav"){const d=P.findIndex(p=>ROLES[p.role].t==="dem");return `Démon : ${d>=0?names([d]):"—"}.`}
   if(id==="_minion"){const d=P.findIndex(p=>ROLES[p.role].t==="dem"),m=P.map((p,i)=>ROLES[p.role].t==="min"?i:-1).filter(i=>i>=0);return `Démon : ${names([d])}. Sbires : ${names(m)}.`}
   if(id==="_demon"){const m=P.map((p,i)=>ROLES[p.role].t==="min"?i:-1).filter(i=>i>=0);return `Sbires : ${names(m)}. Bluffs : ${S.bluffs.map(b=>ROLES[b].n).join(", ")}.`}
   if(id==="chef"){let c=0;for(let i=0;i<P.length;i++)if(evil[i]&&evil[(i+1)%P.length])c++;return `Valeur brute : <b>${c}</b>`}
@@ -687,7 +760,9 @@ function vNight(){
   if(!hasRoles()) return noRoles();
   const first=S.night===1, order=first?FIRST:OTHER, P=S.players;
   const steps=order.map(id=>{
-    if(id[0]==="_"){ if(P.length<7) return null; return {id,who:id==="_minion"?"Sbires":"Démon",label:id==="_minion"?"Infos des Sbires":"Infos du Démon"} }
+    if(id==="_trav"){const t=P.filter(p=>p.trav&&p.alive&&p.align==="evil"&&p.told===S.night);
+      return t.length?{id,who:t.map(p=>esc(p.name)).join(", "),label:"Voyageur maléfique"}:null}
+    if(id[0]==="_"){ if(S.count<7) return null; return {id,who:id==="_minion"?"Sbires":"Démon",label:id==="_minion"?"Infos des Sbires":"Infos du Démon"} }
     const holders=P.filter(p=>p.role===id||p.fake===id);
     if(!holders.length) return null;
     const alive=holders.some(p=>p.alive)||id==="corbeaux";
@@ -711,10 +786,13 @@ function vNight(){
 function fmt(s){return Math.floor(s/60)+":"+String(s%60).padStart(2,"0")}
 function vDay(){
   if(!hasRoles()) return noRoles();
-  const alive=S.players.filter(p=>p.alive).length, need=Math.ceil(alive/2);
-  const pct=Math.min(100,vote.n/Math.max(1,alive)*100);
+  const alive=S.players.filter(p=>p.alive).length;
+  // un Voyageur ne s'exécute pas, il s'exile : soutien d'au moins la moitié de toute la ville, morts compris
+  const nom=S.players[vote.nominee], exile=!!(nom&&nom.trav), town=S.players.length;
+  const need=exile?Math.ceil(town/2):Math.ceil(alive/2);
+  const pct=Math.min(100,vote.n/Math.max(1,exile?town:alive)*100);
   return `<h2>Jour ${S.night}</h2>
-  <p class="sub">${alive} vivants. Il faut <b>${need}</b> votes pour une exécution (et battre le meilleur score du jour).</p>
+  <p class="sub">${alive} vivants. Il faut <b>${Math.ceil(alive/2)}</b> votes pour une exécution (et battre le meilleur score du jour).${S.players.some(p=>p.trav&&p.alive)?` Exil d'un Voyageur : <b>${Math.ceil(town/2)}</b> soutiens.`:""}</p>
   <div class="sec">
     <div class="box stack">
       <span class="lbl">Discussion</span>
@@ -725,13 +803,14 @@ function vDay(){
       </div>
     </div>
     <div class="box stack">
-      <span class="lbl">Nomination</span>
-      <select id="nominee" data-act="nominee"><option value="">Qui est nominé ?</option>${S.players.map((p,i)=>p.alive?`<option value="${i}" ${String(vote.nominee)===String(i)?"selected":""}>${esc(p.name)}</option>`:"").join("")}</select>
+      <span class="lbl">${exile?"Exil":"Nomination"}</span>
+      <select id="nominee" data-act="nominee"><option value="">Qui est nominé ou exilé ?</option>${S.players.map((p,i)=>p.alive?`<option value="${i}" ${String(vote.nominee)===String(i)?"selected":""}>${esc(p.name)}${p.trav?" (Voyageur : exil)":""}</option>`:"").join("")}</select>
       <div class="votes"><button class="btn" data-act="vm" aria-label="Retirer un vote">−</button><b>${vote.n}</b><button class="btn" data-act="vp" aria-label="Ajouter un vote">+</button></div>
       <div class="bar ${vote.n>=need?"pass":""}"><i style="width:${pct}%"></i></div>
-      <p class="sub">Les morts votent une seule fois (vote fantôme), à décocher dans le Grimoire.</p>
-      <div class="row"><button class="btn" data-act="record" ${vote.nominee===""?"disabled":""}>Enregistrer le vote</button>
-      <button class="btn danger" data-act="exec" ${vote.nominee===""?"disabled":""}>Exécuter</button></div>
+      <p class="sub">${exile?`Tout le monde peut soutenir l'exil, même les morts, sans dépenser leur vote fantôme. Il faut <b>${need}</b> soutiens sur ${town}. Ce n'est pas l'exécution du jour.`
+        :"Les morts votent une seule fois (vote fantôme), à décocher dans le Grimoire."}</p>
+      <div class="row"><button class="btn" data-act="record" ${vote.nominee===""?"disabled":""}>Enregistrer ${exile?"l'exil":"le vote"}</button>
+      <button class="btn danger" data-act="exec" ${vote.nominee===""?"disabled":""}>${exile?"Exiler":"Exécuter"}</button></div>
     </div>
     ${S.log.length?`<div class="box"><span class="lbl">Historique</span><ul class="log">${S.log.slice().reverse().map(l=>`<li>${esc(l)}</li>`).join("")}</ul></div>`:""}
     <button class="btn pri wide" data-act="dusk">La nuit tombe → Nuit ${S.night+1}</button>
@@ -747,9 +826,9 @@ function reveal(i,stage){
     <button class="btn pri" data-v="show" data-i="${i}">Je suis ${esc(p.name)}, voir mon rôle</button>
     <button class="btn" data-v="close">Retour</button>`;
   } else if(stage===1){
-    const r=p.fake||p.role,R=ROLES[r],ev=isEvil(r);
+    const r=p.fake||p.role,R=ROLES[r],ev=p.trav?p.align==="evil":isEvil(r);
     v.innerHTML=`<div class="card ${ev?"evil":"good"}"><span class="team ${ev?"t-evil":"t-good"}">${TEAM[R.t]} · ${ev?"Maléfique":"Bon"}</span>
-      ${tokImg(r,"l")}<div class="rname">${R.n}</div><p>${R.a}</p></div>
+      ${tokImg(r,"l",ev)}<div class="rname">${R.n}</div><p>${R.a}</p></div>
       <button class="btn pri" data-v="hide" data-i="${i}">J'ai retenu, cacher</button>`;
   } else {
     v.innerHTML=`<div class="big">Écran caché</div><p class="sub">Rends le téléphone au conteur.</p><button class="btn pri" data-v="close">C'est le conteur</button>`;
@@ -776,13 +855,19 @@ document.addEventListener("click",e=>{
   if(d.qr!==undefined){showQR(+d.qr);return}
   if(d.share!==undefined){shareLink(+d.share);return}
   if(d.free!==undefined){S.claims[+d.free]=null;render();return}
+  if(d.leave!==undefined){const p=S.players[+d.leave];if(p&&p.trav){S.log.push(`${S.phase==="day"?"J":"N"}${S.night} : ${p.name} quitte la partie`);removeSeat(+d.leave);vote={nominee:"",n:0}}render();return}
+  if(d.align!==undefined){const p=S.players[+d.align];p.align=p.align==="evil"?"good":"evil";render();return}
+  if(d.tvalign){tv.align=d.tvalign;render();return}
   if(d.alive!==undefined){const p=S.players[+d.alive];p.alive=!p.alive;if(p.alive)p.ghost=true;render();return}
   if(d.mark!==undefined){const p=S.players[+d.mark],m=d.m;p.marks=p.marks.includes(m)?p.marks.filter(x=>x!==m):[...p.marks,m];render();return}
   if(d.ghost!==undefined){const p=S.players[+d.ghost];p.ghost=!p.ghost;render();return}
   if(d.time){timer.left=+d.time;render();return}
   if(d.g){gtab=d.g;render();return}
   switch(d.act){
-    case "minus":case "plus":{const n=S.count+(d.act==="plus"?1:-1);if(n<5||n>15)return;if(hasRoles())pending=d.act;else{clearRoles();resize(n)}break}
+    case "minus":case "plus":{const n=S.count+(d.act==="plus"?1:-1);if(n<5||n>15)return;if(hasRoles())pending=d.act;else resize(n);break}
+    case "tv-open":tv={name:"",seat:S.players.length,role:"",align:"good"};break;
+    case "tv-cancel":tv=null;break;
+    case "tv-add":addTraveller();break;
     case "draw":if(hasRoles())pending="draw";else draw();break;
     case "pend-yes":if(pending==="draw")draw();else if(pending){clearRoles();resize(S.count+(pending==="plus"?1:-1))}pending=null;break;
     case "pend-no":pending=null;break;
@@ -802,7 +887,7 @@ document.addEventListener("click",e=>{
     case "vp":vote.n++;break;
     case "vm":vote.n=Math.max(0,vote.n-1);break;
     case "record":S.log.push(`J${S.night} : ${S.players[vote.nominee].name} — ${vote.n} vote(s)`);vote={nominee:"",n:0};break;
-    case "exec":{const p=S.players[vote.nominee];p.alive=false;S.log.push(`J${S.night} : ${p.name} exécuté (${vote.n} votes)`);vote={nominee:"",n:0};break}
+    case "exec":{const p=S.players[vote.nominee];p.alive=false;S.log.push(`J${S.night} : ${p.name} ${p.trav?"exilé":"exécuté"} (${vote.n} ${p.trav?"soutiens":"votes"})`);vote={nominee:"",n:0};break}
     default:return;
   }
   render();
@@ -812,9 +897,14 @@ document.addEventListener("change",e=>{
   if(d.step){const k="n"+S.night;const a=S.done[k]||[];S.done[k]=t.checked?[...a,d.step]:a.filter(x=>x!==d.step);render()}
   else if(d.role!==undefined){const p=S.players[+d.role];p.role=t.value;if(t.value!=="ivrogne")p.fake="";else if(!p.fake)p.fake=byType("town").find(r=>!S.players.some(q=>q.role===r))||"";render()}
   else if(t.id==="nominee"){vote.nominee=t.value;render()}
+  else if(t.id==="tv-seat"){tv.seat=+t.value}
+  else if(t.id==="tv-role"){tv.role=t.value;render()}
 });
-document.addEventListener("input",e=>{const d=e.target.dataset;if(d.name!==undefined){S.players[+d.name].name=e.target.value||("Joueur "+(+d.name+1));save()}});
-function clearMarks(){S.players.forEach(p=>p.marks=p.marks.filter(m=>m!=="Protégé"&&m!=="Empoisonné"))}
+document.addEventListener("input",e=>{const d=e.target.dataset;if(d.name!==undefined){S.players[+d.name].name=e.target.value||("Joueur "+(+d.name+1));save()}
+  else if(e.target.id==="tv-name"&&tv)tv.name=e.target.value});
+// marqueurs qui ne valent que jusqu'à la nuit suivante
+const NIGHTLY=["Protégé","Empoisonné","Vote ×3","Vote négatif"];
+function clearMarks(){S.players.forEach(p=>p.marks=p.marks.filter(m=>!NIGHTLY.includes(m)))}
 function startT(){if(timer.left<=0)timer.left=300;timer.run=true;timer.id=setInterval(()=>{timer.left--;const c=document.getElementById("clock");if(c){c.textContent=fmt(timer.left);c.classList.toggle("low",timer.left<=30)}if(timer.left<=0){stopT();try{navigator.vibrate&&navigator.vibrate([300,100,300])}catch(e){}render()}},1000)}
 function stopT(){timer.run=false;clearInterval(timer.id)}
 // garder l'écran allumé si possible : le navigateur libère le verrou quand l'appli passe en arrière-plan, on le redemande au retour
