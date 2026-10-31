@@ -4,7 +4,7 @@ Appli compagnon du conteur pour **Blood on the Clocktower** (script Trouble Brew
 
 ## Stack
 - PWA statique, zéro build : tout est dans `index.html` (HTML + CSS + JS vanilla). Seule dépendance : PeerJS, chargé à la demande pour la table connectée.
-- `sw.js` : service worker (cache hors ligne). Incrémenter `C` ("grimoire-vN") à chaque modif pour forcer la mise à jour.
+- `sw.js` : service worker. La page passe par le réseau d'abord (cache seulement hors ligne), le reste par le cache d'abord ; l'installation ignore le cache HTTP (GitHub Pages sert en max-age=600). À chaque modif, incrémenter `C` ("grimoire-vN") ET `APP_V` dans index.html (affiché en bas de l'onglet Partie).
 - `manifest.json` + `icon-192.png` / `icon-512.png` : installation sur l'écran d'accueil.
 
 ## Architecture de index.html

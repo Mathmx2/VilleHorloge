@@ -281,6 +281,7 @@ const SCRIPT = [
 
 // ---------- État ----------
 const KEY="botc-grimoire-v1";
+const APP_V="10"; // à garder égal au numéro de cache de sw.js (grimoire-vN)
 let S = load() || fresh(8);
 S.claims=S.claims||[];
 let tab = "setup";
@@ -401,6 +402,7 @@ function vSetup(){
     <div class="confirm">${confirmReset
       ?`<button class="btn danger" data-act="reset-yes">Oui, tout effacer</button><button class="btn" data-act="reset-no">Annuler</button>`
       :`<button class="btn sm" data-act="reset">Nouvelle partie (tout effacer)</button>`}</div>
+    <p class="sub" style="text-align:center">Version ${APP_V}</p>
   </div>`;
 }
 
