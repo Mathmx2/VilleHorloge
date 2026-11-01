@@ -1,6 +1,6 @@
 # Grimoire de poche
 
-Appli conteur pour Blood on the Clocktower (Trouble Brewing), installable sur téléphone et utilisable hors ligne.
+Appli conteur pour Blood on the Clocktower (Trouble Brewing, Bad Moon Rising, Sects & Violets), installable sur téléphone et utilisable hors ligne.
 
 ## Installer sur ton téléphone (gratuit, 5 min)
 1. Le code est sur `github.com/Mathmx2/VilleHorloge` : chaque `git push` sur `main` met le site à jour (penser à incrémenter `grimoire-vN` dans `sw.js`).

@@ -175,7 +175,7 @@ details.role[open]{border-color:var(--brass-d)}
 <div class="veil" id="veil" hidden></div>
 
 <script>
-// ---------- Données : script « Trouble Brewing », capacités résumées ----------
+// ---------- Données : rôles des 3 scripts (Trouble Brewing, Bad Moon Rising, Sects & Violets), capacités résumées ----------
 const ROLES = {
   lavandiere:{n:"Lavandière",t:"town",a:"1re nuit : apprend que l'un de deux joueurs est un Villageois précis."},
   bibliothecaire:{n:"Bibliothécaire",t:"town",a:"1re nuit : apprend que l'un de deux joueurs est un Étranger précis (ou qu'il n'y en a aucun)."},
@@ -204,8 +204,95 @@ const ROLES = {
   pistolero:{n:"Pistolero",t:"trav",a:"Chaque jour, après le 1er vote, tu peux désigner un joueur qui a voté : il meurt."},
   mendiant:{n:"Mendiant",t:"trav",a:"Tu dois utiliser un jeton de vote pour voter. Si un mort te donne le sien, tu apprends son camp. Tu es sobre et en bonne santé."},
   bureaucrate:{n:"Bureaucrate",t:"trav",a:"Chaque nuit, désigne un joueur (pas toi) : demain, son vote compte triple."},
-  voleur:{n:"Voleur",t:"trav",a:"Chaque nuit, désigne un joueur (pas toi) : demain, son vote compte en négatif."}
+  voleur:{n:"Voleur",t:"trav",a:"Chaque nuit, désigne un joueur (pas toi) : demain, son vote compte en négatif."},
+  // ---- Bad Moon Rising ----
+  grandmere:{n:"Grand-mère",t:"town",a:"Connaît dès le début un joueur bon et son rôle. Si le Démon le tue, elle meurt aussi."},
+  marin:{n:"Marin",t:"town",a:"Chaque nuit : choisit un joueur vivant, lui ou ce joueur est ivre jusqu'au crépuscule. Ne peut pas mourir."},
+  femmechambre:{n:"Femme de chambre",t:"town",a:"Chaque nuit : choisit 2 joueurs vivants (pas elle), apprend combien se sont réveillés cette nuit grâce à leur capacité."},
+  exorciste:{n:"Exorciste",t:"town",a:"Chaque nuit sauf la 1re : choisit un joueur (pas celui de la veille). Si c'est le Démon, il apprend qui est l'Exorciste et ne se réveille pas cette nuit."},
+  aubergiste:{n:"Aubergiste",t:"town",a:"Chaque nuit sauf la 1re : choisit 2 joueurs, ils ne peuvent pas mourir cette nuit, mais l'un est ivre jusqu'au crépuscule."},
+  parieur:{n:"Parieur",t:"town",a:"Chaque nuit sauf la 1re : choisit un joueur et devine son rôle. S'il se trompe, il meurt."},
+  commere:{n:"Commère",t:"town",a:"Chaque jour : peut faire une déclaration publique. Cette nuit, si elle était vraie, un joueur meurt."},
+  courtisan:{n:"Courtisan",t:"town",a:"Une fois par partie, la nuit : choisit un rôle, qui est ivre pendant 3 nuits et 3 jours."},
+  professeur:{n:"Professeur",t:"town",a:"Une fois par partie, la nuit sauf la 1re : choisit un joueur mort. Si c'est un Villageois, il ressuscite."},
+  menestrel:{n:"Ménestrel",t:"town",a:"Quand un Sbire meurt exécuté, tous les autres joueurs (sauf les Voyageurs) sont ivres jusqu'au crépuscule du lendemain."},
+  dameduthe:{n:"Dame du thé",t:"town",a:"Si ses deux voisins vivants sont bons, ils ne peuvent pas mourir."},
+  pacifiste:{n:"Pacifiste",t:"town",a:"Les joueurs bons exécutés peuvent ne pas mourir."},
+  bouffon:{n:"Bouffon",t:"town",a:"La première fois qu'il meurt, il ne meurt pas."},
+  bricoleur:{n:"Bricoleur",t:"out",a:"Peut mourir à tout moment."},
+  enfantlune:{n:"Enfant de la lune",t:"out",a:"Quand il apprend sa mort, choisit publiquement un joueur vivant. Cette nuit, si ce joueur est bon, il meurt."},
+  grosbras:{n:"Gros bras",t:"out",a:"Chaque nuit, le 1er joueur qui le choisit avec sa capacité est ivre jusqu'au crépuscule. Gros bras prend alors son camp."},
+  lunatique:{n:"Lunatique",t:"out",a:"Croit être un Démon, mais ne l'est pas. Le vrai Démon sait qui il est et qui il choisit la nuit."},
+  parrain:{n:"Parrain",t:"min",a:"Sait dès le début quels Étrangers sont en jeu. Si l'un d'eux est mort aujourd'hui, choisit un joueur cette nuit : il meurt. [−1 ou +1 Étranger]"},
+  avocatdiable:{n:"Avocat du diable",t:"min",a:"Chaque nuit : choisit un joueur vivant (pas celui de la veille). S'il est exécuté demain, il ne meurt pas."},
+  assassin:{n:"Assassin",t:"min",a:"Une fois par partie, la nuit sauf la 1re : choisit un joueur, qui meurt même si quelque chose le protégeait."},
+  cerveau:{n:"Cerveau",t:"min",a:"Si le Démon meurt exécuté (ce qui finirait la partie), on joue un jour de plus. Si un joueur est alors exécuté, son équipe perd."},
+  zombuul:{n:"Zombuul",t:"dem",a:"Chaque nuit sauf la 1re : si personne n'est mort aujourd'hui, choisit un joueur qui meurt. La 1re fois qu'il meurt, il survit mais passe pour mort."},
+  pukka:{n:"Pukka",t:"dem",a:"Chaque nuit : choisit un joueur, qui est empoisonné. Le joueur empoisonné précédent meurt puis redevient sain."},
+  shabaloth:{n:"Shabaloth",t:"dem",a:"Chaque nuit sauf la 1re : choisit 2 joueurs, qui meurent. Un mort choisi la nuit précédente peut être régurgité."},
+  po:{n:"Po",t:"dem",a:"Chaque nuit sauf la 1re : peut choisir un joueur, qui meurt. Si son dernier choix était personne, choisit 3 joueurs cette nuit."},
+  apprenti:{n:"Apprenti",t:"trav",a:"Lors de ta 1re nuit, tu gagnes la capacité d'un Villageois (si tu es bon) ou d'un Sbire (si tu es mauvais)."},
+  matrone:{n:"Matrone",t:"trav",a:"Chaque jour, tu peux faire échanger de place jusqu'à 3 paires de joueurs. Personne ne peut quitter sa place pour parler en privé."},
+  juge:{n:"Juge",t:"trav",a:"Une fois par partie, si un autre joueur a nominé, tu peux forcer l'exécution en cours à réussir ou à échouer."},
+  eveque:{n:"Évêque",t:"trav",a:"Seul le conteur peut nominer. Au moins un joueur du camp opposé au tien doit être nominé chaque jour."},
+  vaudou:{n:"Vaudou",t:"trav",a:"Seuls toi et les morts pouvez voter, sans jeton de vote. La majorité de 50 % n'est pas requise."},
+  // ---- Sects & Violets ----
+  horloger:{n:"Horloger",t:"town",a:"Sait dès le début à combien de pas le Démon se trouve de son Sbire le plus proche."},
+  reveur:{n:"Rêveur",t:"town",a:"Chaque nuit : choisit un joueur (pas lui ni un Voyageur), apprend 1 rôle bon et 1 rôle mauvais, dont l'un est le bon."},
+  charmeur:{n:"Charmeur de serpents",t:"town",a:"Chaque nuit : choisit un joueur vivant. Si c'est le Démon, ils échangent rôles et camps, puis le nouveau Charmeur est empoisonné."},
+  mathematicien:{n:"Mathématicien",t:"town",a:"Chaque nuit : apprend combien de joueurs ont vu leur capacité fonctionner anormalement depuis l'aube à cause d'un autre rôle."},
+  fleuriste:{n:"Fleuriste",t:"town",a:"Chaque nuit sauf la 1re : apprend si un Démon a voté aujourd'hui."},
+  crieur:{n:"Crieur public",t:"town",a:"Chaque nuit sauf la 1re : apprend si un Sbire a nominé aujourd'hui."},
+  oracle:{n:"Oracle",t:"town",a:"Chaque nuit sauf la 1re : apprend combien de joueurs morts sont mauvais."},
+  savant:{n:"Savant",t:"town",a:"Chaque jour : peut aller voir le conteur et apprendre 2 choses en privé, l'une vraie, l'autre fausse."},
+  couturiere:{n:"Couturière",t:"town",a:"Une fois par partie, la nuit : choisit 2 joueurs (pas elle), apprend s'ils sont du même camp."},
+  philosophe:{n:"Philosophe",t:"town",a:"Une fois par partie, la nuit : choisit un rôle bon et gagne sa capacité. Si ce rôle est en jeu, son joueur est ivre."},
+  artiste:{n:"Artiste",t:"town",a:"Une fois par partie, de jour : pose en privé au conteur une question fermée (oui ou non)."},
+  jongleur:{n:"Jongleur",t:"town",a:"Lors de son 1er jour : devine publiquement le rôle de 5 joueurs au maximum. Cette nuit-là, apprend combien sont justes."},
+  sage:{n:"Sage",t:"town",a:"Si le Démon le tue, apprend que c'est l'un de 2 joueurs."},
+  mutant:{n:"Mutant",t:"out",a:"S'il est « fou » à l'idée d'être un Étranger, il peut être exécuté."},
+  cherie:{n:"Chérie",t:"out",a:"Quand elle meurt, un joueur devient ivre pour le reste de la partie."},
+  barbier:{n:"Barbier",t:"out",a:"S'il est mort aujourd'hui ou cette nuit, le Démon peut choisir 2 joueurs (pas un autre Démon) qui échangent leurs rôles."},
+  maladroit:{n:"Maladroit",t:"out",a:"Quand il apprend sa mort, choisit publiquement un joueur vivant : si ce joueur est mauvais, son équipe perd."},
+  jumeau:{n:"Jumeau maléfique",t:"min",a:"Lui et un joueur du camp adverse se connaissent. Si le jumeau bon est exécuté, le Mal gagne. Le Bien ne peut pas gagner tant qu'ils sont tous deux en vie."},
+  sorciere:{n:"Sorcière",t:"min",a:"Chaque nuit : choisit un joueur. S'il nomine demain, il meurt. S'il ne reste que 3 vivants, elle perd cette capacité."},
+  cerenovus:{n:"Cérénovus",t:"min",a:"Chaque nuit : choisit un joueur et un rôle bon. Demain, ce joueur doit être « fou » d'être ce rôle, sinon il peut être exécuté."},
+  megere:{n:"Mégère",t:"min",a:"Chaque nuit sauf la 1re : choisit un joueur et un rôle hors jeu, que ce joueur devient. Si un Démon est créé, les morts de la nuit sont au choix du conteur."},
+  fanggu:{n:"Fang Gu",t:"dem",a:"Chaque nuit sauf la 1re : choisit un joueur, qui meurt. Le 1er Étranger tué ainsi devient un Fang Gu mauvais, et l'ancien meurt à sa place. [+1 Étranger]"},
+  vigormortis:{n:"Vigormortis",t:"dem",a:"Chaque nuit sauf la 1re : choisit un joueur, qui meurt. Les Sbires qu'il tue gardent leur capacité et empoisonnent un Villageois voisin. [−1 Étranger]"},
+  nodashii:{n:"No Dashii",t:"dem",a:"Chaque nuit sauf la 1re : choisit un joueur, qui meurt. Ses 2 voisins Villageois les plus proches sont empoisonnés."},
+  vortox:{n:"Vortox",t:"dem",a:"Chaque nuit sauf la 1re : choisit un joueur, qui meurt. Les Villageois reçoivent de fausses infos. Chaque jour sans exécution, le Mal gagne."},
+  barista:{n:"Barista",t:"trav",a:"Chaque nuit, jusqu'au crépuscule, un joueur devient sobre, sain et reçoit de vraies infos, ou sa capacité fonctionne deux fois. Il apprend lequel."},
+  seductrice:{n:"Séductrice",t:"trav",a:"Chaque nuit sauf la 1re, choisis un joueur vivant : s'il accepte, tu apprends son rôle, mais vous pouvez mourir tous les deux."},
+  boucher:{n:"Boucher",t:"trav",a:"Chaque jour, après la 1re exécution, tu peux nominer de nouveau."},
+  collecteur:{n:"Collecteur d'os",t:"trav",a:"Une fois par partie, la nuit, choisis un joueur mort : il retrouve sa capacité jusqu'au crépuscule."},
+  deviant:{n:"Déviant",t:"trav",a:"Si tu as été drôle aujourd'hui, tu ne peux pas mourir par exil."}
 };
+// Scripts : rôles et ordre de nuit (d'après la feuille de nuit officielle ; _minion/_demon/_trav = infos des Sbires, du Démon, d'un Voyageur maléfique)
+const SCRIPTS = {
+  tb:{n:"Trouble Brewing",roles:["lavandiere","bibliothecaire","enqueteur","chef","empathe","voyante","croquemort","moine","corbeaux","vierge","pourfendeur","soldat","maire",
+      "majordome","ivrogne","reclus","saint","empoisonneur","espion","ecarlate","baron","diablotin","boucemissaire","pistolero","mendiant","bureaucrate","voleur"],
+    first:["bureaucrate","voleur","_minion","_demon","_trav","empoisonneur","lavandiere","bibliothecaire","enqueteur","chef","empathe","voyante","majordome","espion"],
+    other:["_trav","bureaucrate","voleur","empoisonneur","moine","ecarlate","diablotin","corbeaux","empathe","voyante","croquemort","majordome","espion"]},
+  bmr:{n:"Bad Moon Rising",roles:["grandmere","marin","femmechambre","exorciste","aubergiste","parieur","commere","courtisan","professeur","menestrel","dameduthe","pacifiste","bouffon",
+      "bricoleur","enfantlune","grosbras","lunatique","parrain","avocatdiable","assassin","cerveau","zombuul","pukka","shabaloth","po","apprenti","matrone","juge","eveque","vaudou"],
+    first:["apprenti","lunatique","_minion","_demon","_trav","marin","courtisan","parrain","avocatdiable","pukka","grandmere","femmechambre"],
+    other:["_trav","marin","courtisan","aubergiste","parieur","avocatdiable","lunatique","exorciste","zombuul","pukka","shabaloth","po","assassin","parrain","commere","professeur",
+      "bricoleur","enfantlune","grandmere","femmechambre"]},
+  snv:{n:"Sects & Violets",roles:["horloger","reveur","charmeur","mathematicien","fleuriste","crieur","oracle","savant","couturiere","philosophe","artiste","jongleur","sage",
+      "mutant","cherie","barbier","maladroit","jumeau","sorciere","cerenovus","megere","fanggu","vigormortis","nodashii","vortox","barista","seductrice","boucher","collecteur","deviant"],
+    first:["barista","philosophe","_minion","_demon","_trav","charmeur","jumeau","sorciere","cerenovus","horloger","reveur","couturiere","mathematicien"],
+    other:["_trav","barista","seductrice","collecteur","philosophe","charmeur","sorciere","cerenovus","megere","fanggu","nodashii","vortox","vigormortis","barbier","cherie","sage",
+      "reveur","fleuriste","crieur","oracle","couturiere","jongleur","mathematicien"]}
+};
+// rôles qui changent le nombre d'Étrangers (une des valeurs au choix) et rôles qui croient en être un autre
+const OUTMOD = {baron:[2],parrain:[-1,1],fanggu:[1],vigormortis:[-1]};
+const FAKEAS = {ivrogne:"town",lunatique:"dem"};
+const SETUP_NOTE = {tb:"Si le Baron sort, 2 Villageois deviennent Étrangers.",bmr:"Si le Parrain sort, il y a 1 Étranger de plus ou de moins (au choix).",
+  snv:"Si Fang Gu sort, 1 Villageois devient Étranger ; avec Vigormortis, c'est l'inverse."};
+const curScript = () => (S&&SCRIPTS[S.script])?S.script:"tb";
+const scriptOf = r => Object.keys(SCRIPTS).find(k=>SCRIPTS[k].roles.includes(r))||"tb";
+const wakesOf = r => {const sc=SCRIPTS[scriptOf(r)];return [sc.first.includes(r),sc.other.includes(r)]};
 const TEAM = {town:"Villageois",out:"Étranger",min:"Sbire",dem:"Démon",trav:"Voyageur"};
 const TEAMS = {town:"Villageois",out:"Étrangers",min:"Sbires",dem:"Démon",trav:"Voyageurs"};
 const TYPES = ["town","out","min","dem","trav"];
@@ -217,11 +304,8 @@ const pEvil = p => isTrav(p.role) ? p.align==="evil" : isEvil(p.role);
 // ev : camp à montrer (carte du joueur lui-même) ; sans ev, un Voyageur garde un liseré neutre
 const tokImg = (r,size,ev) => `<img class="rimg ${size} ${ev!==undefined?(ev?"evil":"good"):isTrav(r)?"trav":isEvil(r)?"evil":"good"}" src="img/${r}.webp" alt="" loading="lazy" decoding="async">`;
 const COMP = {5:[3,0,1,1],6:[3,1,1,1],7:[5,0,1,1],8:[5,1,1,1],9:[5,2,1,1],10:[7,0,2,1],11:[7,1,2,1],12:[7,2,2,1],13:[9,0,3,1],14:[9,1,3,1],15:[9,2,3,1]};
-const byType = t => Object.keys(ROLES).filter(k=>ROLES[k].t===t);
+const byType = (t,sc=curScript()) => SCRIPTS[sc].roles.filter(k=>ROLES[k].t===t);
 
-// Ordre de nuit : [id, quand]
-const FIRST = ["_minion","_demon","_trav","bureaucrate","voleur","empoisonneur","espion","lavandiere","bibliothecaire","enqueteur","chef","empathe","voyante","majordome"];
-const OTHER = ["_trav","bureaucrate","voleur","empoisonneur","moine","ecarlate","diablotin","corbeaux","croquemort","empathe","voyante","majordome","espion"];
 const HINT = {
   _minion:"Réveille les Sbires : montre-leur qui est le Démon et qui sont les autres Sbires.",
   _demon:"Réveille le Démon : montre-lui ses Sbires et 3 rôles bons hors jeu (bluffs).",
@@ -241,7 +325,53 @@ const HINT = {
   ecarlate:"Seulement si le Démon est mort aujourd'hui : elle devient le Démon.",
   diablotin:"Il désigne une victime. S'il se désigne lui-même : la Femme écarlate devient Diablotin si elle le peut, sinon tu choisis quel Sbire vivant le devient. Réveille-le pour le lui montrer.",
   corbeaux:"Seulement s'il est mort cette nuit : il désigne un joueur, montre-lui son rôle.",
-  croquemort:"Seulement si quelqu'un a été exécuté : montre-lui le rôle de l'exécuté."
+  croquemort:"Seulement si quelqu'un a été exécuté : montre-lui le rôle de l'exécuté.",
+  // Bad Moon Rising
+  apprenti:"Montre-lui la capacité qu'il gagne : celle d'un Villageois s'il est bon, d'un Sbire s'il est mauvais.",
+  lunatique:"Réveille-le comme un Démon (dès 7 joueurs, montre-lui de faux Sbires et 3 bluffs). Il désigne une victime : rien ne se passe, mais le vrai Démon apprend qui est le Lunatique et son choix.",
+  marin:"Il désigne un joueur vivant : lui ou ce joueur (à toi de choisir) est ivre jusqu'au crépuscule. Marque-le Ivre.",
+  courtisan:"S'il n'a pas encore utilisé sa capacité, il peut désigner un rôle : ce rôle est ivre 3 nuits et 3 jours. Marque-le Ivre.",
+  aubergiste:"Il désigne 2 joueurs : ils ne peuvent pas mourir cette nuit (Protégé) et l'un des deux est ivre jusqu'au crépuscule.",
+  parieur:"Il désigne un joueur et devine son rôle : s'il se trompe, il meurt.",
+  avocatdiable:"Il désigne un joueur vivant (pas celui de la veille) : s'il est exécuté demain, il ne meurt pas. Marque-le Protégé.",
+  exorciste:"Il désigne un joueur (pas celui de la veille). Si c'est le Démon, montre au Démon qui est l'Exorciste : le Démon ne se réveille pas cette nuit.",
+  zombuul:"Seulement si personne n'est mort aujourd'hui : il désigne une victime.",
+  pukka:"Il désigne un joueur : marque-le Empoisonné. Le joueur empoisonné précédent meurt (pas la 1re nuit).",
+  shabaloth:"Il désigne 2 victimes. Tu peux ressusciter un mort qu'il a choisi la nuit précédente.",
+  po:"Il désigne une victime, ou personne. S'il n'avait choisi personne la fois précédente, il désigne 3 victimes.",
+  assassin:"S'il n'a pas encore tué, il peut désigner une victime : elle meurt quoi qu'il arrive.",
+  parrain:"1re nuit : montre-lui les Étrangers en jeu. Ensuite : seulement si un Étranger est mort aujourd'hui, il désigne une victime.",
+  commere:"Seulement si sa déclaration du jour était vraie : un joueur de ton choix meurt.",
+  professeur:"S'il n'a pas encore utilisé sa capacité, il peut désigner un mort : si c'est un Villageois, il ressuscite.",
+  bricoleur:"Tu peux le faire mourir maintenant si tu le souhaites.",
+  enfantlune:"Seulement s'il a désigné un joueur bon après sa mort : ce joueur meurt.",
+  grandmere:"1re nuit : montre-lui un joueur bon et son rôle. Ensuite : seulement si le Démon a tué ce joueur, elle meurt aussi.",
+  femmechambre:"Elle désigne 2 joueurs vivants (pas elle) : donne le nombre de ceux qui se sont réveillés cette nuit grâce à leur capacité.",
+  // Sects & Violets
+  barista:"Choisis un joueur : il devient sobre, sain et reçoit de vraies infos, ou sa capacité fonctionne deux fois. Réveille-le pour lui dire lequel.",
+  seductrice:"Elle désigne un joueur vivant. Réveille-le : s'il accepte, montre son rôle à la Séductrice. Tu peux les faire mourir tous les deux.",
+  collecteur:"S'il n'a pas encore utilisé sa capacité, il peut désigner un mort : ce mort retrouve sa capacité jusqu'au crépuscule.",
+  philosophe:"S'il n'a pas encore utilisé sa capacité, il peut désigner un rôle bon : il gagne cette capacité. Si ce rôle est en jeu, marque son joueur Ivre.",
+  charmeur:"Il désigne un joueur vivant. Si c'est le Démon, échange leurs rôles et camps, montre-leur leur nouveau rôle, puis marque l'ancien Démon (nouveau Charmeur) Empoisonné.",
+  jumeau:"Réveille le Jumeau maléfique et son jumeau bon : montre à chacun l'autre et son rôle.",
+  sorciere:"Elle désigne un joueur : marque-le Maudit. S'il nomine demain, il meurt.",
+  cerenovus:"Il désigne un joueur et un rôle bon. Réveille ce joueur pour lui montrer le rôle dont il doit être « fou » demain. Marque-le Fou.",
+  megere:"Elle désigne un joueur et un rôle hors jeu : ce joueur devient ce rôle. Réveille-le pour le lui montrer.",
+  fanggu:"Il désigne une victime. Si c'est le 1er Étranger qu'il tue, cet Étranger devient un Fang Gu mauvais (montre-le-lui) et l'ancien Fang Gu meurt à sa place.",
+  nodashii:"Il désigne une victime. Ses 2 voisins Villageois les plus proches restent empoisonnés.",
+  vortox:"Il désigne une victime. Toutes les infos des Villageois doivent être fausses.",
+  vigormortis:"Il désigne une victime. Un Sbire tué garde sa capacité et empoisonne un Villageois voisin.",
+  barbier:"Seulement s'il est mort aujourd'hui ou cette nuit : réveille le Démon, qui peut faire échanger leurs rôles à 2 joueurs (montre-leur leur nouveau rôle).",
+  cherie:"Seulement s'il vient de mourir : choisis un joueur, qui devient ivre pour toute la partie. Marque-le Ivre.",
+  sage:"Seulement si le Démon l'a tué cette nuit : montre-lui 2 joueurs, dont le Démon.",
+  horloger:"Donne-lui le nombre de pas entre le Démon et son Sbire le plus proche.",
+  reveur:"Il désigne un joueur : montre-lui 1 rôle bon et 1 rôle mauvais, dont l'un est le vrai.",
+  fleuriste:"Hoche la tête si un Démon a voté aujourd'hui.",
+  crieur:"Hoche la tête si un Sbire a nominé aujourd'hui.",
+  oracle:"Donne-lui le nombre de joueurs morts qui sont mauvais.",
+  couturiere:"Si elle n'a pas encore utilisé sa capacité, elle peut désigner 2 joueurs : hoche la tête s'ils sont du même camp.",
+  jongleur:"Seulement après son 1er jour : donne-lui le nombre de ses suppositions justes.",
+  mathematicien:"Donne-lui le nombre de joueurs dont la capacité a fonctionné anormalement depuis l'aube."
 };
 
 // ---------- Guide : détails des rôles (d = en jeu, c = conseil conteur) ----------
@@ -272,7 +402,69 @@ const DETAIL = {
   pistolero:["Chaque jour, juste après le décompte du 1er vote, il peut désigner un joueur qui a voté : ce joueur meurt.","Il peut passer son tour. En cas de doute, fais relever les mains de ceux qui ont voté."],
   mendiant:["Il ne peut voter qu'avec un jeton de vote donné par un mort. Quand un mort lui donne le sien, il apprend en secret le camp de ce mort. Il est sobre et en bonne santé.","Chaque vote lui coûte un jeton. Quand un mort lui donne son jeton, coche « Vote fantôme utilisé » chez ce mort et dis au Mendiant son camp à l'oreille."],
   bureaucrate:["Chaque nuit, il désigne un autre joueur : le lendemain, le vote de ce joueur compte pour 3.","Le joueur ne sait rien. Compte son vote triple au moment du décompte (+3 dans l'onglet Jour)."],
-  voleur:["Chaque nuit, il désigne un autre joueur : le lendemain, le vote de ce joueur compte en négatif.","Le joueur ne sait rien. Au décompte, retire 1 au lieu d'ajouter 1 quand il lève la main."]
+  voleur:["Chaque nuit, il désigne un autre joueur : le lendemain, le vote de ce joueur compte en négatif.","Le joueur ne sait rien. Au décompte, retire 1 au lieu d'ajouter 1 quand il lève la main."],
+  // ---- Bad Moon Rising ----
+  grandmere:["La première nuit, elle apprend qu'un joueur bon a tel rôle. Si le Démon tue ce petit-enfant, elle meurt aussi.","Choisis un petit-enfant intéressant. Elle ne meurt pas s'il meurt d'une autre façon (exécution, Assassin…)."],
+  marin:["Chaque nuit, il choisit un joueur vivant : l'un des deux (au choix du conteur) est ivre jusqu'au crépuscule. Le Marin ne peut pas mourir, sauf s'il est ivre.","Quand il est ivre, il peut mourir : c'est souvent comme ça qu'on se débarrasse de lui."],
+  femmechambre:["Chaque nuit, elle choisit 2 joueurs vivants (pas elle) et apprend combien d'entre eux se sont réveillés cette nuit grâce à leur capacité.","Compte seulement les réveils dus à leur propre capacité, pas ceux où tu les réveilles pour leur donner une info."],
+  exorciste:["Chaque nuit sauf la première, il choisit un joueur différent de la veille. Si c'est le Démon, le Démon apprend qui est l'Exorciste et ne se réveille pas cette nuit : personne ne meurt de sa main.","Le Démon apprend l'identité de l'Exorciste : il le tuera souvent ensuite."],
+  aubergiste:["Chaque nuit sauf la première, il choisit 2 joueurs : ils ne peuvent pas mourir cette nuit, mais l'un des deux est ivre jusqu'au crépuscule.","Choisis lequel est ivre. Il peut se protéger lui-même."],
+  parieur:["Chaque nuit sauf la première, il choisit un joueur et devine son rôle. S'il se trompe, il meurt.","Ivre ou empoisonné, il peut se tromper sans mourir."],
+  commere:["Chaque jour, elle peut faire une déclaration publique. Si elle était vraie, un joueur meurt cette nuit.","C'est toi qui choisis qui meurt. Une déclaration fausse ne déclenche rien."],
+  courtisan:["Une fois par partie, la nuit, il choisit un rôle (pas un joueur) : ce rôle est ivre pendant 3 nuits et 3 jours.","Si le rôle choisi n'est pas en jeu, la capacité est quand même dépensée."],
+  professeur:["Une fois par partie, la nuit sauf la première, il choisit un joueur mort : si c'est un Villageois, il ressuscite et retrouve sa capacité.","S'il choisit un mort qui n'est pas Villageois, rien ne se passe et la capacité est dépensée."],
+  menestrel:["Quand un Sbire meurt exécuté, tous les autres joueurs (sauf les Voyageurs) sont ivres jusqu'au crépuscule du lendemain.","Pratique pour couper toutes les infos d'une nuit : tu peux donner n'importe quoi."],
+  dameduthe:["Si ses deux voisins vivants sont bons, ils ne peuvent pas mourir, de quelque façon que ce soit.","Elle-même n'est pas protégée."],
+  pacifiste:["Les joueurs bons exécutés peuvent ne pas mourir.","À toi de décider. N'en abuse pas : une exécution ratée de temps en temps suffit à semer le doute."],
+  bouffon:["La première fois qu'il devrait mourir, il survit.","Annonce simplement qu'il ne meurt pas, sans dire pourquoi."],
+  bricoleur:["Il peut mourir à tout moment, de jour comme de nuit, sans raison.","Un bon outil pour accélérer une partie ou semer le trouble."],
+  enfantlune:["Quand il apprend sa mort, il choisit publiquement un joueur vivant. Si ce joueur est bon, il meurt cette nuit.","Rappelle-lui sa capacité au moment de sa mort."],
+  grosbras:["Chaque nuit, le premier joueur qui le choisit avec sa capacité est ivre jusqu'au crépuscule, et Gros bras prend son camp.","Il change de camp sans forcément le savoir : préviens-le de son nouveau camp."],
+  lunatique:["Il croit être un Démon, mais ne l'est pas. Il se réveille et choisit des victimes comme un Démon, sans effet. Le vrai Démon sait qui il est et qui il choisit.","Réveille-le comme un Démon et montre-lui de faux Sbires. Le vrai Démon peut s'appuyer sur ses choix."],
+  parrain:["Il sait dès le début quels Étrangers sont en jeu. Si un Étranger est mort aujourd'hui, il choisit un joueur cette nuit, qui meurt. Sa présence ajoute ou retire 1 Étranger.","L'appli accepte les deux compositions (un Étranger de plus ou de moins)."],
+  avocatdiable:["Chaque nuit, il choisit un joueur vivant, différent de la veille : s'il est exécuté demain, il ne meurt pas.","Annonce l'exécution, puis que le joueur survit, sans dire pourquoi."],
+  assassin:["Une fois par partie, la nuit sauf la première, il choisit un joueur : celui-ci meurt, même s'il était protégé (Soldat, Aubergiste, Dame du thé…).","Rien ne l'arrête, pas même le Marin ou le Bouffon."],
+  cerveau:["Si le Démon meurt exécuté, la partie continue un jour de plus. Si un joueur est alors exécuté, son équipe perd ; sinon, le Mal perd.","Annonce que la partie continue : c'est un grand moment de tension."],
+  zombuul:["Chaque nuit sauf la première, si personne n'est mort aujourd'hui, il choisit un joueur, qui meurt. La première fois qu'il meurt, il survit en secret mais passe pour mort.","Une fois « mort », il continue à se réveiller pour tuer. Il ne peut plus voter qu'avec son vote fantôme."],
+  pukka:["Chaque nuit, il choisit un joueur, qui est empoisonné. Le joueur empoisonné précédent meurt puis redevient sain.","Les morts arrivent avec une nuit de retard : la 1re nuit, personne ne meurt."],
+  shabaloth:["Chaque nuit sauf la première, il choisit 2 joueurs, qui meurent. Un mort qu'il a choisi la nuit précédente peut revenir à la vie (régurgité).","La résurrection est à ton choix : utile pour embrouiller les pistes."],
+  po:["Chaque nuit sauf la première, il peut choisir un joueur, qui meurt. S'il n'a choisi personne la fois précédente, il choisit 3 joueurs cette nuit.","Une nuit sans mort annonce souvent une nuit à 3 morts."],
+  apprenti:["Lors de sa première nuit, il gagne la capacité d'un Villageois s'il est bon, ou d'un Sbire s'il est mauvais.","Choisis une capacité utile mais pas trop forte. Montre-lui le jeton correspondant."],
+  matrone:["Chaque jour, elle peut faire échanger de place jusqu'à 3 paires de joueurs. Personne ne peut quitter sa place pour parler en privé.","Pense à modifier l'ordre des places dans l'appli (onglet Partie) si des joueurs échangent."],
+  juge:["Une fois par partie, si un autre joueur a nominé, il peut forcer l'exécution en cours à réussir ou à échouer.","Il l'annonce publiquement pendant le vote."],
+  eveque:["Seul le conteur peut nominer. Au moins un joueur du camp opposé à l'Évêque doit être nominé chaque jour.","Tu fais toutes les nominations : garde un rythme rapide."],
+  vaudou:["Seuls le Vaudou et les morts peuvent voter, sans dépenser de jeton de vote. Il n'y a pas besoin d'atteindre la moitié des vivants.","Le plus de votes l'emporte, quel que soit le seuil affiché dans l'onglet Jour."],
+  // ---- Sects & Violets ----
+  horloger:["La première nuit, il apprend à combien de pas le Démon est de son Sbire le plus proche (1 = voisins).","L'appli calcule la valeur brute dans l'étape de nuit."],
+  reveur:["Chaque nuit, il choisit un joueur (pas lui ni un Voyageur) et apprend 1 rôle bon et 1 rôle mauvais : l'un des deux est le vrai rôle de ce joueur.","Choisis des leurres crédibles."],
+  charmeur:["Chaque nuit, il choisit un joueur vivant. Si c'est le Démon, ils échangent rôles et camps : le Charmeur devient le Démon, l'ancien Démon devient le Charmeur, empoisonné.","Montre-leur leur nouveau rôle et leur nouveau camp. Le nouveau Démon ne connaît pas forcément ses Sbires."],
+  mathematicien:["Chaque nuit, il apprend combien de joueurs ont vu leur capacité fonctionner anormalement depuis l'aube à cause d'un autre rôle (ivresse, poison…).","Compte les infos fausses et les capacités ratées à cause d'un autre rôle."],
+  fleuriste:["Chaque nuit sauf la première, elle apprend si un Démon a voté aujourd'hui.","Note pendant le jour si le Démon lève la main."],
+  crieur:["Chaque nuit sauf la première, il apprend si un Sbire a nominé aujourd'hui.","Note pendant le jour qui nomine."],
+  oracle:["Chaque nuit sauf la première, il apprend combien de joueurs morts sont mauvais.","L'appli calcule la valeur brute dans l'étape de nuit."],
+  savant:["Chaque jour, il peut aller voir le conteur pour apprendre 2 choses en privé : l'une est vraie, l'autre fausse.","Prépare des phrases courtes et vérifiables."],
+  couturiere:["Une fois par partie, la nuit, elle choisit 2 joueurs (pas elle) et apprend s'ils sont du même camp.","Elle peut garder sa capacité pour plus tard."],
+  philosophe:["Une fois par partie, la nuit, il choisit un rôle bon et gagne sa capacité. Si ce rôle est en jeu, son joueur devient ivre.","Réveille-le désormais comme ce rôle."],
+  artiste:["Une fois par partie, de jour, il pose en privé au conteur une question fermée (réponse oui, non ou je ne sais pas).","Réponds honnêtement, sauf s'il est ivre ou empoisonné."],
+  jongleur:["Lors de son premier jour, il devine publiquement le rôle de 5 joueurs au maximum. Cette nuit-là, il apprend combien sont justes.","Note ses suppositions pendant le jour."],
+  sage:["Si le Démon le tue, il apprend que le Démon est l'un de 2 joueurs.","Rien ne se passe s'il meurt autrement."],
+  mutant:["S'il est « fou » à l'idée d'être un Étranger (s'il essaie de convaincre qu'il en est un), il peut être exécuté.","Préviens-le une fois, puis exécute-le s'il insiste (à ton choix)."],
+  cherie:["Quand elle meurt, un joueur devient ivre pour le reste de la partie.","Choisis qui. Le joueur ne le sait pas."],
+  barbier:["S'il est mort aujourd'hui ou cette nuit, le Démon peut choisir 2 joueurs (pas un autre Démon) qui échangent leurs rôles.","Réveille les deux joueurs pour leur montrer leur nouveau rôle."],
+  maladroit:["Quand il apprend sa mort, il choisit publiquement un joueur vivant : si ce joueur est mauvais, son équipe perd.","Rappelle-lui sa capacité au moment de sa mort."],
+  jumeau:["Lui et un joueur du camp adverse se connaissent, avec leurs rôles. Si le jumeau bon est exécuté, le Mal gagne. Le Bien ne peut pas gagner tant que les deux sont en vie.","Choisis le jumeau bon à la mise en place, puis réveille-les tous les deux la 1re nuit."],
+  sorciere:["Chaque nuit, elle choisit un joueur. S'il nomine demain, il meurt. S'il ne reste que 3 vivants, elle perd cette capacité.","Le joueur maudit n'est pas prévenu."],
+  cerenovus:["Chaque nuit, il choisit un joueur et un rôle bon. Demain, ce joueur doit être « fou » d'être ce rôle (le défendre comme le sien), sinon il peut être exécuté.","Réveille le joueur pour lui montrer le rôle. À toi de juger s'il a joué le jeu."],
+  megere:["Chaque nuit sauf la première, elle choisit un joueur et un rôle hors jeu : ce joueur devient ce rôle. Si un Démon est créé, les morts de cette nuit sont au choix du conteur.","Change le rôle dans le Grimoire et réveille le joueur pour le lui montrer."],
+  fanggu:["Chaque nuit sauf la première, il choisit un joueur, qui meurt. Le premier Étranger qu'il tue ainsi devient un Fang Gu mauvais, et l'ancien Fang Gu meurt à sa place. Sa présence ajoute 1 Étranger.","Change le rôle de l'Étranger en Fang Gu dans le Grimoire."],
+  vigormortis:["Chaque nuit sauf la première, il choisit un joueur, qui meurt. Les Sbires qu'il tue gardent leur capacité et empoisonnent un Villageois voisin. Sa présence retire 1 Étranger.","Marque Empoisonné le voisin concerné."],
+  nodashii:["Chaque nuit sauf la première, il choisit un joueur, qui meurt. Ses 2 voisins Villageois les plus proches sont empoisonnés.","Pense à remarquer Empoisonné ces voisins chaque nuit : l'appli efface les marqueurs au crépuscule."],
+  vortox:["Chaque nuit sauf la première, il choisit un joueur, qui meurt. Toutes les infos des Villageois sont fausses. Chaque jour sans exécution, le Mal gagne.","Les infos des Villageois doivent toujours être fausses, même celles calculées par l'appli."],
+  barista:["Chaque nuit, jusqu'au crépuscule, un joueur devient sobre, sain et reçoit de vraies infos, ou bien sa capacité fonctionne deux fois. Ce joueur apprend lequel.","C'est toi qui choisis le joueur et l'effet."],
+  seductrice:["Chaque nuit sauf la première, elle choisit un joueur vivant : s'il accepte, elle apprend son rôle, mais les deux peuvent mourir.","Leur mort est à ton choix."],
+  boucher:["Chaque jour, après la première exécution, il peut nominer de nouveau.","Une deuxième exécution devient possible le même jour."],
+  collecteur:["Une fois par partie, la nuit, il choisit un joueur mort : ce mort retrouve sa capacité jusqu'au crépuscule.","Réveille le mort s'il doit utiliser sa capacité cette nuit."],
+  deviant:["S'il a été drôle aujourd'hui, il ne peut pas mourir par exil.","C'est à toi de juger s'il a été drôle."]
 };
 
 const RULES = [
@@ -289,18 +481,18 @@ const RULES = [
   ["Exil","Un Voyageur ne peut pas être exécuté : on l'exile. N'importe qui peut lancer un exil, et tout le monde peut le soutenir, même les morts sans dépenser leur vote fantôme. Il faut le soutien d'au moins la moitié de la ville. Ce n'est ni une nomination ni une exécution, et il peut y en avoir plusieurs par jour."]
 ];
 const SCRIPT = [
-  ["Avant la partie",["Fais asseoir tout le monde en cercle et entre les noms dans cet ordre.","Compose le sac de rôles : garde la proposition au hasard ou ajoute et retire des rôles d'un appui. Puis « Distribuer les rôles », et passe le téléphone à chacun (ou ouvre la table connectée).","Explique les règles en 2 minutes (onglet Règles), surtout les votes et les morts."]],
+  ["Avant la partie",["Choisis le script en haut de l'onglet Partie : Trouble Brewing pour débuter, Bad Moon Rising (beaucoup de morts) ou Sects & Violets (des rôles qui changent) ensuite.","Fais asseoir tout le monde en cercle et entre les noms dans cet ordre.","Compose le sac de rôles : garde la proposition au hasard ou ajoute et retire des rôles d'un appui. Puis « Distribuer les rôles », et passe le téléphone à chacun (ou ouvre la table connectée).","Explique les règles en 2 minutes (onglet Règles), surtout les votes et les morts."]],
   ["Première nuit",["Dis : « Tout le monde ferme les yeux. »","Suis l'onglet Nuit de haut en bas. Dès 7 joueurs, réveille les Sbires puis le Démon pour qu'ils se reconnaissent.","Coche chaque étape. Quand c'est fini : « Tout le monde ouvre les yeux. »"]],
   ["Chaque jour",["Annonce qui est mort cette nuit, sans dire comment.","Lance le minuteur de discussion (5 min au début, moins ensuite).","Ouvre les nominations. Pour chaque nomination : le nominateur explique, le nominé se défend, puis on vote.","Au coucher du soleil, exécute le plus haut score s'il atteint le seuil. Touche Exécuter."]],
-  ["Nuits suivantes",["Même chose avec l'ordre des autres nuits. Les marqueurs Empoisonné et Protégé s'effacent tout seuls.","Le Croque-mort ne se réveille que si quelqu'un a été exécuté. Le Gardien des corbeaux seulement s'il vient de mourir."]],
+  ["Nuits suivantes",["Même chose avec l'ordre des autres nuits. Les marqueurs Empoisonné et Protégé s'effacent tout seuls.","Certains rôles ne se réveillent que sous condition (Croque-mort, Gardien des corbeaux, Zombuul, Sage…) : c'est indiqué dans leur étape de nuit."]],
   ["Voyageurs",["Un retardataire arrive ? Onglet Partie → « Ajouter un voyageur » : son nom, sa place dans le cercle, le Voyageur qu'il a choisi et le camp que tu lui donnes.","Annonce son Voyageur à tout le monde, et dis-lui son camp en secret (ou laisse-le le voir sur son téléphone).","S'il est maléfique, l'appli te rappelle de lui montrer le Démon la nuit suivante.","Pour un exil, choisis le Voyageur dans l'onglet Jour : le seuil passe à la moitié de toute la ville."]],
   ["Fin de partie",["Dès que le Démon meurt (et que la Femme écarlate ne prend pas le relais), le Bien gagne.","S'il ne reste que 2 vivants (sans compter les Voyageurs), le Mal gagne.","Révèle le Grimoire à tout le monde : c'est le meilleur moment de la partie."]],
-  ["Conseils de conteur",["Ton but est une partie serrée, pas de faire gagner un camp.","Ivrogne et Empoisonneur sont tes outils pour brouiller les infos : donne des infos fausses mais crédibles.","Garde un bon rythme : une nuit ne doit pas durer plus de quelques minutes.","Chuchote ou utilise des gestes pour que personne n'entende qui tu réveilles."]]
+  ["Conseils de conteur",["Ton but est une partie serrée, pas de faire gagner un camp.","L'ivresse et le poison sont tes outils pour brouiller les infos : donne des infos fausses mais crédibles.","Garde un bon rythme : une nuit ne doit pas durer plus de quelques minutes.","Chuchote ou utilise des gestes pour que personne n'entende qui tu réveilles."]]
 ];
 
 // ---------- État ----------
 const KEY="botc-grimoire-v1";
-const APP_V="12"; // à garder égal au numéro de cache de sw.js (grimoire-vN)
+const APP_V="13"; // à garder égal au numéro de cache de sw.js (grimoire-vN)
 let S = load() || fresh(8);
 S.claims=S.claims||[];
 let tab = "setup";
@@ -328,29 +520,40 @@ function resize(n){
 }
 // vrai seulement si chaque joueur a un rôle (protège aussi des sauvegardes incohérentes)
 const hasRoles = ()=>S.players.length>0&&S.players.every(p=>p.role&&ROLES[p.role]);
+// changement de script : les rôles (Voyageurs compris) appartiennent à l'ancien script, on repart d'un sac neuf
+function switchScript(k){if(!SCRIPTS[k])return;clearRoles();S.script=k;S.bag=null;tv=null}
 function clearRoles(){
   for(let i=S.players.length-1;i>=0;i--) if(S.players[i].trav) removeSeat(i);
   S.players.forEach(p=>{p.role="";p.fake="";p.alive=true;p.ghost=true;p.seen=false;p.marks=[]});
   S.bluffs=[];S.night=1;S.done={};S.log=[];
 }
-// composition attendue pour le sac donné : le Baron remplace 2 Villageois par 2 Étrangers
-function expected(bag){let [t,o,m,d]=COMP[S.count];if(bag.includes("baron")){o+=2;t-=2}return {town:t,out:o,min:m,dem:d}}
+// composition attendue : les rôles d'OUTMOD (Baron, Parrain, Fang Gu, Vigormortis) changent le nombre d'Étrangers,
+// les Villageois complètent. outs = nombres d'Étrangers possibles.
+function expected(bag){
+  const [t,o,m,d]=COMP[S.count];
+  let outs=[o];
+  for(const r of bag) if(OUTMOD[r]) outs=[...new Set(outs.flatMap(x=>OUTMOD[r].map(k=>x+k)))];
+  outs=outs.filter(x=>x>=0&&x<=t+o).sort((a,b)=>a-b);
+  return {outs:outs.length?outs:[o],min:m,dem:d,total:t+o};
+}
 // sac de rôles au hasard, en respectant la composition
 function randomBag(){
-  const mins=shuffle(byType("min")).slice(0,COMP[S.count][2]);
-  const e=expected(mins);
-  return [...shuffle(byType("town")).slice(0,e.town),...shuffle(byType("out")).slice(0,e.out),...mins,"diablotin"];
+  const [t,o,m,d]=COMP[S.count];
+  const dem=shuffle(byType("dem")).slice(0,d),mins=shuffle(byType("min")).slice(0,m);
+  const nOut=Math.min(shuffle(expected([...dem,...mins]).outs)[0],byType("out").length);
+  return [...shuffle(byType("town")).slice(0,t+o-nOut),...shuffle(byType("out")).slice(0,nOut),...mins,...dem];
 }
 function draw(){deal(randomBag())}
 // distribue au hasard les rôles du sac (choisi par le conteur ou tiré au hasard)
 function deal(bag){
   const all=shuffle(bag);
   const inPlay=new Set(all);
-  const freeTown=shuffle(byType("town").filter(r=>!inPlay.has(r)));
-  const fake = inPlay.has("ivrogne") ? freeTown.shift() : "";
-  S.bluffs = shuffle([...freeTown,...byType("out").filter(r=>!inPlay.has(r)&&r!=="ivrogne")]).slice(0,3);
+  // Ivrogne : croit être un Villageois ; Lunatique : croit être un Démon. Faux rôle pris hors jeu.
+  const free={town:shuffle(byType("town").filter(r=>!inPlay.has(r))),dem:shuffle(byType("dem").filter(r=>!inPlay.has(r)))};
+  const fakes={};for(const r of all) if(FAKEAS[r]) fakes[r]=free[FAKEAS[r]].shift()||"";
+  S.bluffs = shuffle([...free.town,...byType("out").filter(r=>!inPlay.has(r)&&!FAKEAS[r])]).slice(0,3);
   // les Voyageurs gardent leur rôle : on ne tire que pour les autres
-  base().forEach((p,i)=>{p.role=all[i];p.fake=p.role==="ivrogne"?fake:"";p.alive=true;p.ghost=true;p.seen=false;p.marks=[]});
+  base().forEach((p,i)=>{p.role=all[i];p.fake=fakes[p.role]||"";p.alive=true;p.ghost=true;p.seen=false;p.marks=[]});
   // fausse piste de la Voyante : un joueur bon au hasard
   if(inPlay.has("voyante")){const g=shuffle(base().filter(p=>!isEvil(p.role)));if(g[0])g[0].marks.push("Fausse piste")}
   S.night=1;S.done={};S.log=[];S.drawnAt=Date.now();S.phase="night";S.pubAlive=S.players.map(()=>true);
@@ -375,7 +578,7 @@ function vGuide(){
   else body=TYPES.map(t=>`<h3 class="${teamCls(t)}" style="margin-top:8px">${TEAMS[t]}</h3>`+byType(t).map(r=>`
     <details class="box role"><summary><div class="rrow">${tokImg(r,"s")}<div><b>${ROLES[r].n}</b><br><span class="sub">${ROLES[r].a}</span></div></div></summary>
       <div class="stack" style="margin-top:10px"><p>${DETAIL[r][0]}</p><p class="tip"><span class="lbl">Conteur</span><br>${DETAIL[r][1]}</p>
-      ${FIRST.includes(r)||OTHER.includes(r)?`<p class="sub">Se réveille : ${[FIRST.includes(r)?"1re nuit":"",OTHER.includes(r)?"autres nuits":""].filter(Boolean).join(" et ")}</p>`:`<p class="sub">Ne se réveille pas la nuit.</p>`}</div>
+      ${(([f,o])=>f||o?`<p class="sub">Se réveille : ${[f?"1re nuit":"",o?"autres nuits":""].filter(Boolean).join(" et ")}</p>`:`<p class="sub">Ne se réveille pas la nuit.</p>`)(wakesOf(r))}</div>
     </details>`).join("")).join("");
   return `<h2>Guide</h2><div class="seg">${sub.map(([k,l])=>`<button class="btn sm ${gtab===k?"pri":""}" data-g="${k}">${l}</button>`).join("")}</div>
   <div class="sec">${body}</div>`;
@@ -395,9 +598,14 @@ function vSetup(){
   const drawn=hasRoles();
   return `<div class="stack">
     <h1>Grimoire de poche</h1>
-    <p class="sub">Pour jouer à Blood on the Clocktower en présentiel. Le conteur tient l'appli, les joueurs peuvent suivre leur rôle sur leur téléphone. Script : Trouble Brewing.</p>
+    <p class="sub">Pour jouer à Blood on the Clocktower en présentiel. Le conteur tient l'appli, les joueurs peuvent suivre leur rôle sur leur téléphone.</p>
   </div>
   <div class="sec">
+    <div class="box stack">
+      <span class="lbl">Script</span>
+      <div class="seg">${Object.keys(SCRIPTS).map(k=>`<button class="btn sm ${curScript()===k?"pri":""}" data-script="${k}" aria-pressed="${curScript()===k}">${SCRIPTS[k].n}</button>`).join("")}</div>
+      ${pending&&pending.startsWith("script:")?pendBox(`Passer à ${SCRIPTS[pending.slice(7)].n} annule la distribution en cours, remet la partie à zéro et retire les Voyageurs.`):""}
+    </div>
     <div class="box stack">
       <span class="lbl">Nombre de joueurs (sans le conteur)</span>
       <div class="stepper"><button class="btn" data-act="minus" aria-label="Moins">−</button><b>${S.count}</b><button class="btn" data-act="plus" aria-label="Plus">+</button></div>
@@ -405,7 +613,7 @@ function vSetup(){
         <div><b class="t-good">${t}</b>Villag.</div><div><b class="t-good">${o}</b>Étrang.</div>
         <div><b class="t-evil">${m}</b>Sbire${m>1?"s":""}</div><div><b class="t-evil">${d}</b>Démon</div>
       </div>
-      <p class="sub">Si le Baron sort, 2 Villageois deviennent Étrangers.${S.players.length>S.count?` Plus ${S.players.length-S.count} Voyageur${S.players.length-S.count>1?"s":""}, hors composition.`:""}</p>
+      <p class="sub">${SETUP_NOTE[curScript()]}${S.players.length>S.count?` Plus ${S.players.length-S.count} Voyageur${S.players.length-S.count>1?"s":""}, hors composition.`:""}</p>
       ${pending==="plus"||pending==="minus"?pendBox("Les rôles sont déjà tirés : changer le nombre de joueurs les efface et retire les Voyageurs. Il faudra les retirer et les redistribuer."):""}
     </div>
     <div class="box stack">
@@ -427,18 +635,20 @@ function vSetup(){
 
 // sac de rôles : le conteur choisit les rôles en jeu, l'appli les distribue au hasard
 function vBag(){
-  if(!Array.isArray(S.bag)||S.bag.some(r=>!ROLES[r]||isTrav(r))) S.bag=randomBag();
-  const bag=S.bag,e=expected(bag),full=bag.length===S.count,demon=bag.some(r=>ROLES[r].t==="dem");
+  if(!Array.isArray(S.bag)||S.bag.some(r=>!ROLES[r]||isTrav(r)||!SCRIPTS[curScript()].roles.includes(r))) S.bag=randomBag();
+  const bag=S.bag,full=bag.length===S.count,demon=bag.some(r=>ROLES[r].t==="dem");
   const n=t=>bag.filter(r=>ROLES[r].t===t).length;
-  const odd=["town","out","min","dem"].filter(t=>n(t)!==e[t]);
+  const x=expected(bag),outOk=x.outs.includes(n("out")),eo=outOk?n("out"):x.outs[0];
+  const e={town:x.total-eo,out:eo,min:x.min,dem:x.dem},lbl={...e,out:x.outs.join(" ou ")};
+  const odd=["town","out","min","dem"].filter(t=>t==="out"?!outOk:n(t)!==e[t]);
   return `<div class="box stack"><div class="row" style="justify-content:space-between"><span class="lbl">Rôles en jeu</span><span class="pill ${full?"ok":""}">${bag.length} / ${S.count}</span></div>
     <p class="sub">Touche un rôle pour l'ajouter ou le retirer. Ils seront ensuite distribués au hasard aux joueurs.</p>
     <div class="row"><button class="btn sm" data-act="bag-rand">Proposer au hasard</button><button class="btn sm" data-act="bag-clear">Tout retirer</button></div>
-    ${["town","out","min","dem"].map(t=>`<h3 class="${teamCls(t)}">${TEAMS[t]} <span class="sub">${n(t)} / ${e[t]}</span></h3>
+    ${["town","out","min","dem"].map(t=>`<h3 class="${teamCls(t)}">${TEAMS[t]} <span class="sub">${n(t)} / ${lbl[t]}</span></h3>
       <div class="bagrid">${byType(t).map(r=>`<button class="bagc ${bag.includes(r)?"on":""}" data-bag="${r}" aria-pressed="${bag.includes(r)}">${tokImg(r,"s")}${ROLES[r].n}</button>`).join("")}</div>`).join("")}
     ${!demon?`<p class="t-evil">Il faut un Démon pour pouvoir distribuer.</p>`
       :!full?`<p class="sub">Il faut exactement ${S.count} rôles, un par joueur (${bag.length>S.count?`retire-en ${bag.length-S.count}`:`ajoutes-en ${S.count-bag.length}`}).</p>`
-      :odd.length?`<p class="sub">Composition inhabituelle (${odd.map(t=>`${n(t)} ${TEAMS[t]} au lieu de ${e[t]}`).join(", ")}). C'est permis : à toi de voir.</p>`:""}
+      :odd.length?`<p class="sub">Composition inhabituelle (${odd.map(t=>`${n(t)} ${TEAMS[t]} au lieu de ${lbl[t]}`).join(", ")}). C'est permis : à toi de voir.</p>`:""}
     <button class="btn pri wide" data-act="deal" ${full&&demon?"":"disabled"}>Distribuer les rôles</button>
   </div>`;
 }
@@ -607,7 +817,7 @@ const fmtDate=t=>{const d=new Date(t);return d.toLocaleDateString("fr-FR",{weekd
 function roleCard(r,align){
   if(!pshow) return `<p>Vérifie que personne ne regarde ton écran.</p><button class="btn pri" data-pv="show">Voir mon rôle</button>`;
   const R=ROLES[r],trav=isTrav(r),ev=trav?align==="evil":isEvil(r);
-  const wakes=[FIRST.includes(r)?"la 1re nuit":"",OTHER.includes(r)?"les autres nuits":""].filter(Boolean).join(" et ");
+  const [wf,wo]=wakesOf(r),wakes=[wf?"la 1re nuit":"",wo?"les autres nuits":""].filter(Boolean).join(" et ");
   const extra=trav?(ev?" Tu es dans le camp du Mal : le conteur te montrera qui est le Démon.":" Tu es dans le camp du Bien.")+" Ton Voyageur est connu de tous, ton camp est secret."
     :ev?" Dès 7 joueurs, il te présentera tes alliés pendant la 1re nuit.":"";
   return `<div class="card ${ev?"evil":"good"}"><span class="team ${ev?"t-evil":"t-good"}">${TEAM[R.t]} · ${ev?"Maléfique":"Bon"}</span>
@@ -616,17 +826,17 @@ function roleCard(r,align){
     <button class="btn pri" data-pv="hide">Cacher mon rôle</button>`;
 }
 // feuille du script + règles : infos publiques, identiques pour tous
-const pRefs=()=>`<details class="box" style="margin-top:22px"><summary class="lbl" style="cursor:pointer">Les rôles du script</summary>
-    <div class="stack" style="margin-top:12px">${TYPES.map(t=>`<h3 class="${teamCls(t)}">${TEAMS[t]}</h3>${byType(t).map(r=>`<div class="rrow">${tokImg(r,"s")}<div><b>${ROLES[r].n}</b><p class="sub">${ROLES[r].a}</p></div></div>`).join("")}`).join("")}</div></details>
+const pRefs=sc=>`<details class="box" style="margin-top:22px"><summary class="lbl" style="cursor:pointer">Les rôles du script (${SCRIPTS[sc].n})</summary>
+    <div class="stack" style="margin-top:12px">${TYPES.map(t=>`<h3 class="${teamCls(t)}">${TEAMS[t]}</h3>${byType(t,sc).map(r=>`<div class="rrow">${tokImg(r,"s")}<div><b>${ROLES[r].n}</b><p class="sub">${ROLES[r].a}</p></div></div>`).join("")}`).join("")}</div></details>
   <details class="box" style="margin-top:12px"><summary class="lbl" style="cursor:pointer">Règles du jeu</summary>
     <div class="stack" style="margin-top:12px">${RULES.map(([h,t])=>`<div><h3>${h}</h3><p class="sub">${t}</p></div>`).join("")}</div></details>`;
 function vPlayer(J){
   if(!J) return `<div class="pv"><h1>Grimoire de poche</h1><div class="box"><p>Ce lien est invalide ou incomplet.</p><p class="sub" style="margin-top:6px">Demande au conteur de te le renvoyer.</p></div></div>`;
   return `<div class="pv">
-    <div class="stack"><span class="lbl">Blood on the Clocktower · Trouble Brewing</span><h1>${esc(J.n)}</h1><p class="sub">Partie tirée le ${fmtDate(J.t)}</p></div>
+    <div class="stack"><span class="lbl">Blood on the Clocktower · ${SCRIPTS[scriptOf(J.r)].n}</span><h1>${esc(J.n)}</h1><p class="sub">Partie tirée le ${fmtDate(J.t)}</p></div>
     ${roleCard(J.r,J.al)}
     <p class="sub">Tu peux mentir sur ton rôle, mais ne montre jamais cet écran. Si le conteur t'envoie un nouveau lien, c'est le nouveau qui compte.</p>
-  </div>${pRefs()}`;
+  </div>${pRefs(scriptOf(J.r))}`;
 }
 
 // ---------- Table connectée ----------
@@ -674,7 +884,7 @@ function sendState(c){
   const alive=S.players.map((q,k)=>day||!S.pubAlive?q.alive:S.pubAlive[k]!==false);
   c.send({t:"state",v:1,names:S.players.map(q=>q.name),taken:S.players.map((_,k)=>!!S.claims[k]),alive,ghost:S.players.map(q=>q.ghost),
     // les Voyageurs sont publics (leur rôle, pas leur camp) ; le camp n'est envoyé qu'au Voyageur lui-même
-    trav:S.players.map(q=>q.trav?q.role:""),
+    trav:S.players.map(q=>q.trav?q.role:""),script:curScript(),
     drawn,drawnAt:S.drawnAt||0,night:S.night,phase:S.phase||"night",seat:i,role:p&&(drawn||p.trav)?(p.fake||p.role):"",align:p&&p.trav?p.align:""});
 }
 let bcT=null;
@@ -748,13 +958,14 @@ function tRetry(){clearTimeout(T.timer);T.timer=setTimeout(joinTable,3000)}
 function vTablePlayer(){
   const s=TM.state,on=T.st==="on";
   const msg={connecting:"Connexion à la table…",absent:"Le conteur est injoignable : son appli doit rester ouverte. Nouvel essai…",offline:"Pas de réseau. Nouvel essai…"}[T.st]||"";
-  const head=`<div class="row" style="justify-content:space-between"><span class="lbl">Blood on the Clocktower · Trouble Brewing</span><span class="pill ${on?"ok":""}">${on?"Connecté":"Hors ligne"}</span></div>
+  const sc=s&&SCRIPTS[s.script]?s.script:"tb";
+  const head=`<div class="row" style="justify-content:space-between"><span class="lbl">Blood on the Clocktower · ${SCRIPTS[sc].n}</span><span class="pill ${on?"ok":""}">${on?"Connecté":"Hors ligne"}</span></div>
     ${on?"":`<p class="sub" style="margin-top:6px">${msg}</p>`}`;
   if(!s) return head+`<div class="pv"><h1>Rejoindre la table</h1><p class="sub">${msg}</p></div>`;
   const seat=s.seat>=0&&s.seat<s.names.length?s.seat:-1;
   if(seat<0) return head+`<div class="sec"><h1>Qui es-tu ?</h1><p class="sub">Choisis ton nom. Si tu n'apparais pas, demande au conteur de t'ajouter.</p>
     <div class="plist">${s.names.map((n,i)=>`<button class="pl btn" style="text-align:left" data-claim="${i}" ${s.taken[i]||!on?"disabled":""}>
-      <span class="tok">${i+1}</span><span class="nm">${esc(n)}</span><span class="pill">${s.taken[i]?"Pris":"Libre"}</span></button>`).join("")}</div></div>${pRefs()}`;
+      <span class="tok">${i+1}</span><span class="nm">${esc(n)}</span><span class="pill">${s.taken[i]?"Pris":"Libre"}</span></button>`).join("")}</div></div>${pRefs(sc)}`;
   // le conteur n'envoie un rôle qu'une fois tiré (ou pour un Voyageur, dès son arrivée)
   const role=ROLES[s.role]?s.role:"";
   const trav=k=>s.trav&&isTrav(s.trav[k])?` <span class="pill trav">${ROLES[s.trav[k]].n}</span>`:"";
@@ -766,7 +977,7 @@ function vTablePlayer(){
   </div>
   ${s.drawn?`<div class="box stack"><span class="lbl">${s.phase==="day"?"Jour":"Nuit"} ${s.night} · ${nAlive} vivants sur ${s.names.length}</span>
     <ol class="ol">${s.names.map((n,i)=>`<li>${esc(n)}${trav(i)}${s.alive[i]?"":` <span class="sub">† ${s.ghost[i]?"vote fantôme dispo":"vote fantôme utilisé"}</span>`}</li>`).join("")}</ol></div>`:""}
-  ${pRefs()}`;
+  ${pRefs(sc)}`;
 }
 
 function roleSel(i,p){
@@ -774,8 +985,11 @@ function roleSel(i,p){
 }
 function vGrim(){
   if(!hasRoles()) return noRoles();
-  const MARKS=["Empoisonné","Protégé","Fausse piste","Capacité utilisée",
-    ...S.players.some(p=>p.role==="bureaucrate")?["Vote ×3"]:[],...S.players.some(p=>p.role==="voleur")?["Vote négatif"]:[]];
+  // marqueurs proposés selon les rôles présents
+  const has=r=>S.players.some(p=>p.role===r);
+  const MARKS=["Empoisonné","Ivre","Protégé","Capacité utilisée",
+    ...has("voyante")?["Fausse piste"]:[],...has("sorciere")?["Maudit"]:[],...has("cerenovus")||has("mutant")?["Fou"]:[],
+    ...has("bureaucrate")?["Vote ×3"]:[],...has("voleur")?["Vote négatif"]:[]];
   const list=S.gview==="liste";
   if(gsel!==null&&!S.players[gsel])gsel=null;
   return `<div class="row" style="justify-content:space-between"><h2 style="margin:0">Grimoire</h2>
@@ -787,7 +1001,7 @@ function vGrim(){
 }
 // Grimoire en cercle : places dans l'ordre, la 1 en haut, sens des aiguilles d'une montre
 let gsel=null;
-const MARK_ABBR={"Empoisonné":"E","Protégé":"P","Fausse piste":"F","Capacité utilisée":"U","Vote ×3":"×3","Vote négatif":"−"};
+const MARK_ABBR={"Empoisonné":"E","Ivre":"I","Protégé":"P","Fausse piste":"F","Capacité utilisée":"U","Maudit":"M","Fou":"Fo","Vote ×3":"×3","Vote négatif":"−"};
 function vRing(){
   const P=S.players,n=P.length,tk=n<=8?60:n<=12?50:n<=16?40:36,r=n<=8?37:n<=12?39:41;
   // largeur d'un nom = écart entre deux places sur le cercle (en % du cercle), pour qu'ils ne se chevauchent pas
@@ -800,7 +1014,7 @@ function vRing(){
       ${p.marks.length?`<span class="seat-m">${p.marks.map(m=>`<i class="${m==="Empoisonné"?"red":""}">${MARK_ABBR[m]||"•"}</i>`).join("")}</span>`:""}
       ${p.alive?"":`<span class="seat-d" aria-hidden="true">†</span>`}</button>`}).join("")}
   </div>
-  <p class="sub" style="text-align:center">E empoisonné · P protégé · F fausse piste · U capacité utilisée</p>`;
+  ${(used=>used.length?`<p class="sub" style="text-align:center">${used.map(m=>`${MARK_ABBR[m]} ${m.toLowerCase()}`).join(" · ")}</p>`:"")([...new Set(P.flatMap(p=>p.marks))].filter(m=>MARK_ABBR[m]))}`;
 }
 function grimRow(p,i,MARKS){
   const R=ROLES[p.role];return `
@@ -832,22 +1046,26 @@ function calc(id){
   if(id==="_trav"){const d=P.findIndex(p=>ROLES[p.role].t==="dem");return `Démon : ${d>=0?names([d]):"—"}.`}
   if(id==="_minion"){const d=P.findIndex(p=>ROLES[p.role].t==="dem"),m=P.map((p,i)=>ROLES[p.role].t==="min"?i:-1).filter(i=>i>=0);return `Démon : ${names([d])}. Sbires : ${names(m)}.`}
   if(id==="_demon"){const m=P.map((p,i)=>ROLES[p.role].t==="min"?i:-1).filter(i=>i>=0);return `Sbires : ${names(m)}. Bluffs : ${S.bluffs.map(b=>ROLES[b].n).join(", ")}.`}
+  if(id==="horloger"){const d=P.findIndex(p=>ROLES[p.role].t==="dem"),n=P.length;const m=P.map((p,i)=>ROLES[p.role].t==="min"?i:-1).filter(i=>i>=0);
+    if(d<0||!m.length)return "";return `Pas jusqu'au Sbire le plus proche : <b>${Math.min(...m.map(i=>Math.min(Math.abs(i-d),n-Math.abs(i-d))))}</b>`}
+  if(id==="oracle")return `Morts mauvais : <b>${P.filter(p=>!p.alive&&pEvil(p)).length}</b>`;
   if(id==="chef"){let c=0;for(let i=0;i<P.length;i++)if(evil[i]&&evil[(i+1)%P.length])c++;return `Valeur brute : <b>${c}</b>`}
   if(id==="empathe"){const i=P.findIndex(p=>p.role==="empathe"||p.fake==="empathe");if(i<0)return"";const nb=aliveNeighbours(i);return `Voisins vivants : ${names(nb)} → <b>${nb.filter(j=>evil[j]).length}</b>`}
   return "";
 }
 function vNight(){
   if(!hasRoles()) return noRoles();
-  const first=S.night===1, order=first?FIRST:OTHER, P=S.players;
+  const first=S.night===1, sc=SCRIPTS[curScript()], order=first?sc.first:sc.other, P=S.players;
   const steps=order.map(id=>{
     if(id==="_trav"){const t=P.filter(p=>p.trav&&p.alive&&p.align==="evil"&&p.told===S.night);
       return t.length?{id,who:t.map(p=>esc(p.name)).join(", "),label:"Voyageur maléfique"}:null}
     if(id[0]==="_"){ if(S.count<7) return null; return {id,who:id==="_minion"?"Sbires":"Démon",label:id==="_minion"?"Infos des Sbires":"Infos du Démon"} }
-    const holders=P.filter(p=>p.role===id||p.fake===id);
+    // un faux rôle (Ivrogne) se réveille à l'étape de ce rôle, sauf si son vrai rôle a sa propre étape (Lunatique)
+    const holders=P.filter(p=>p.role===id||(p.fake===id&&!order.includes(p.role)));
     if(!holders.length) return null;
     const alive=holders.some(p=>p.alive)||id==="corbeaux";
     if(!alive) return null;
-    return {id,label:ROLES[id].n,who:holders.map(p=>esc(p.name)+(p.fake===id?" (Ivrogne : fais semblant)":"")+(p.marks.includes("Empoisonné")?" (empoisonné)":"")).join(", ")};
+    return {id,label:ROLES[id].n,who:holders.map(p=>esc(p.name)+(p.fake===id?` (${ROLES[p.role].n} : fais semblant)`:"")+(p.role===id&&p.fake?` (se croit ${ROLES[p.fake].n})`:"")+(p.marks.includes("Empoisonné")?" (empoisonné)":"")).join(", ")};
   }).filter(Boolean);
   const key="n"+S.night;
   const done=S.done[key]||[];
@@ -940,6 +1158,7 @@ document.addEventListener("click",e=>{
   if(d.tvalign){tv.align=d.tvalign;render();return}
   if(d.gsel!==undefined){const i=+d.gsel;gsel=gsel===i?null:i;render();return}
   if(d.gview){S.gview=d.gview;render();return}
+  if(d.script){if(d.script!==curScript()){if(hasRoles())pending="script:"+d.script;else switchScript(d.script)}render();return}
   if(d.bag){const r=d.bag;S.bag=S.bag.includes(r)?S.bag.filter(x=>x!==r):[...S.bag,r];render();return}
   if(d.alive!==undefined){const p=S.players[+d.alive];p.alive=!p.alive;if(p.alive)p.ghost=true;render();return}
   if(d.mark!==undefined){const p=S.players[+d.mark],m=d.m;p.marks=p.marks.includes(m)?p.marks.filter(x=>x!==m):[...p.marks,m];render();return}
@@ -957,12 +1176,13 @@ document.addEventListener("click",e=>{
     case "bag-clear":S.bag=[];break;
     // retour au sac : les rôles distribués redeviennent le sac (vrais rôles, pas ceux que croit l'Ivrogne), les Voyageurs restent
     case "pend-yes":if(pending==="draw"){S.bag=base().map(p=>p.role);base().forEach(p=>{p.role="";p.fake="";p.seen=false;p.marks=[]})}
+      else if(pending&&pending.startsWith("script:"))switchScript(pending.slice(7))
       else if(pending){clearRoles();resize(S.count+(pending==="plus"?1:-1))}pending=null;break;
     case "pend-no":pending=null;break;
     case "go-setup":tab="setup";break;
     case "reset":confirmReset=true;break;
     case "reset-no":confirmReset=false;break;
-    case "reset-yes":S={...fresh(S.count),room:S.room,host:S.host,claims:S.claims};confirmReset=false;break;
+    case "reset-yes":S={...fresh(S.count),room:S.room,host:S.host,claims:S.claims,script:S.script};confirmReset=false;break;
     // rendu direct : refresh() s'abstient quand un champ a le focus, ce qui arrive sur iPhone (toucher un bouton ne lui donne pas le focus)
     case "table-open":document.activeElement&&document.activeElement.blur();openTable();break;
     case "table-close":closeTable();break;
@@ -984,7 +1204,8 @@ document.addEventListener("click",e=>{
 document.addEventListener("change",e=>{
   const t=e.target,d=t.dataset;
   if(d.step){const k="n"+S.night;const a=S.done[k]||[];S.done[k]=t.checked?[...a,d.step]:a.filter(x=>x!==d.step);render()}
-  else if(d.role!==undefined){const p=S.players[+d.role];p.role=t.value;if(t.value!=="ivrogne")p.fake="";else if(!p.fake)p.fake=byType("town").find(r=>!S.players.some(q=>q.role===r))||"";render()}
+  else if(d.role!==undefined){const p=S.players[+d.role];p.role=t.value;const fa=FAKEAS[t.value];
+    if(!fa)p.fake="";else if(!p.fake||ROLES[p.fake].t!==fa)p.fake=byType(fa).find(r=>!S.players.some(q=>q.role===r))||"";render()}
   else if(t.id==="nominee"){vote.nominee=t.value;render()}
   else if(t.id==="tv-seat"){tv.seat=+t.value}
   else if(t.id==="tv-role"){tv.role=t.value;render()}
@@ -992,7 +1213,7 @@ document.addEventListener("change",e=>{
 document.addEventListener("input",e=>{const d=e.target.dataset;if(d.name!==undefined){S.players[+d.name].name=e.target.value||("Joueur "+(+d.name+1));save()}
   else if(e.target.id==="tv-name"&&tv)tv.name=e.target.value});
 // marqueurs qui ne valent que jusqu'à la nuit suivante
-const NIGHTLY=["Protégé","Empoisonné","Vote ×3","Vote négatif"];
+const NIGHTLY=["Protégé","Empoisonné","Maudit","Fou","Vote ×3","Vote négatif"];
 function clearMarks(){S.players.forEach(p=>p.marks=p.marks.filter(m=>!NIGHTLY.includes(m)))}
 function startT(){if(timer.left<=0)timer.left=300;timer.run=true;timer.id=setInterval(()=>{timer.left--;const c=document.getElementById("clock");if(c){c.textContent=fmt(timer.left);c.classList.toggle("low",timer.left<=30)}if(timer.left<=0){stopT();try{navigator.vibrate&&navigator.vibrate([300,100,300])}catch(e){}render()}},1000)}
 function stopT(){timer.run=false;clearInterval(timer.id)}

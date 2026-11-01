@@ -1,6 +1,6 @@
 # Grimoire de poche
 
-Appli compagnon du conteur pour **Blood on the Clocktower** (script Trouble Brewing), en présentiel. Le conteur tient le téléphone ; chaque joueur peut recevoir son rôle sur son propre téléphone via un lien ou un QR code (aucune installation, aucun serveur). Interface en français.
+Appli compagnon du conteur pour **Blood on the Clocktower** (scripts Trouble Brewing, Bad Moon Rising et Sects & Violets), en présentiel. Le conteur tient le téléphone ; chaque joueur peut recevoir son rôle sur son propre téléphone via un lien ou un QR code (aucune installation, aucun serveur). Interface en français.
 
 ## Stack
 - PWA statique, zéro build : tout est dans `index.html` (HTML + CSS + JS vanilla). Seule dépendance : PeerJS, chargé à la demande pour la table connectée.
@@ -9,6 +9,7 @@ Appli compagnon du conteur pour **Blood on the Clocktower** (script Trouble Brew
 
 ## Architecture de index.html
 - Sac de rôles : `S.bag` (rôles choisis par le conteur, sans Voyageurs) édité par `vBag` ; `randomBag()` propose une composition au hasard, `expected(bag)` donne la composition attendue (Baron compris), `deal(bag)` distribue au hasard. `draw()` = `deal(randomBag())`. « Changer les rôles » remet les rôles distribués dans le sac.
+- Scripts : `SCRIPTS` (tb, bmr, snv) donne pour chacun la liste des rôles et l’ordre de nuit `first` / `other` (d’après la feuille de nuit officielle ; `_minion`, `_demon`, `_trav` = étapes d’infos). Script courant : `S.script` via `curScript()` ; `byType(t, sc)` filtre par script ; `scriptOf(r)` retrouve le script d’un rôle (identifiants uniques entre scripts) ; `wakesOf(r)`. `OUTMOD` = rôles qui changent le nombre d’Étrangers (Baron +2, Parrain ±1, Fang Gu +1, Vigormortis −1) ; `FAKEAS` = rôles qui se croient un autre (Ivrogne → Villageois, Lunatique → Démon). Les noms français des rôles BMR/S&V sont nos traductions.
 - Données : `ROLES` (nom, type town/out/min/dem, capacité courte), `DETAIL` (texte long + conseil conteur), `RULES`, `SCRIPT`, `COMP` (compo par nombre de joueurs), `FIRST` / `OTHER` (ordre de nuit), `HINT`.
 - État : objet `S` sauvegardé dans `localStorage` (clé `botc-grimoire-v1`). `timer` et `vote` sont volatils.
 - Rendu : `render()` reconstruit `#app` via les vues `vSetup`, `vGrim`, `vNight`, `vDay`, `vGuide`. Événements délégués sur `document` via `data-*`.
@@ -31,6 +32,4 @@ Appli compagnon du conteur pour **Blood on the Clocktower** (script Trouble Brew
 `npx serve .` puis ouvrir l'URL affichée (le service worker exige http(s), pas file://).
 
 ## Idées de suite
-- Autres scripts (Bad Moon Rising, Sects & Violets) : ajouter un sélecteur de script et des tables ROLES/ordre de nuit par script.
-- Vue « cercle » du Grimoire (jetons disposés en rond).
 - Packaging Android via Capacitor (voir README).
